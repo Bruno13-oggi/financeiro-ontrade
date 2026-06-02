@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ontrade – Dashboard 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+:root{
+  --yellow:#F7C600;--black:#282828;--white:#FFFFFF;
+  --bg:#F2F3F6;--surface:#FFFFFF;--border:#E4E6EB;
+  --text:#1A1A1A;--muted:#6B7280;--faint:#9CA3AF;
+  --green:#10B981;--red:#EF4444;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg:0 10px 40px rgba(0,0,0,0.10),0 4px 12px rgba(0,0,0,0.06);
+  --radius:16px;--radius-sm:10px;--radius-xs:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ══ HEADER ══ */
+.header{
+  background:var(--black);
+  padding:0 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  height:64px;
+  box-shadow:0 2px 20px rgba(0,0,0,0.25);
+}
+.header-left{display:flex;align-items:center;gap:20px;}
+.logo-wrap{display:flex;align-items:center;gap:12px;}
+.brand-name{font-size:24px;font-weight:900;color:var(--white);letter-spacing:-1px;line-height:1;}
+.brand-tag{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;letter-spacing:.5px;}
+.hdiv{width:1px;height:32px;background:rgba(255,255,255,0.12);margin:0 8px;}
+.header-info h2{font-size:14px;font-weight:700;color:var(--white);}
+.header-info p{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.header-right{display:flex;gap:8px;align-items:center;}
+.pill{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);}
+.pill strong{color:var(--white);font-weight:700;}
+.update-badge{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:5px 12px;font-size:11px;color:#34D399;font-weight:600;display:flex;align-items:center;gap:5px;}
+.update-badge::before{content:'';width:6px;height:6px;background:#34D399;border-radius:50%;display:inline-block;}
+
+/* ══ NAV TABS ══ */
+.nav-tabs{
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  padding:0 32px;
+  display:flex;gap:0;
+  box-shadow:var(--shadow-sm);
+}
+.nav-tab{
+  padding:16px 22px;font-size:13px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;
+  transition:all .2s;white-space:nowrap;
+  position:relative;
+}
+.nav-tab.on{color:var(--black);border-bottom-color:var(--yellow);font-weight:700;}
+.nav-tab:hover:not(.on){color:var(--black);background:rgba(247,198,0,0.05);}
+
+/* ══ VIEWS ══ */
+.view{display:none;}.view.on{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{opacity:.85;box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+
+/* ══ CONTENT ══ */
+.content{padding:28px 32px;max-width:1600px;margin:0 auto;}
+
+/* ══ KPI CARDS ══ */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px;}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px 20px 18px;
+  position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:var(--shadow-sm);
+}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#c49e00,var(--yellow));}
+.kpi.primary{
+  background:linear-gradient(135deg,#282828 0%,#3d3d3d 100%);
+  border-color:transparent;
+  box-shadow:0 8px 32px rgba(40,40,40,0.25);
+}
+.kpi.primary::before{background:linear-gradient(90deg,var(--yellow),#FFD740);}
+.kpi.primary .kpi-label{color:rgba(255,255,255,0.55);}
+.kpi.primary .kpi-val{color:var(--yellow);font-size:26px;}
+.kpi.primary .kpi-badge{background:rgba(247,198,0,0.15);color:var(--yellow);}
+.kpi-icon{font-size:22px;margin-bottom:10px;display:block;}
+.kpi-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.kpi-val{font-size:22px;font-weight:900;color:var(--black);line-height:1;margin-bottom:8px;letter-spacing:-.5px;}
+.kpi-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-up{background:rgba(16,185,129,0.10);color:var(--green);}
+.b-down{background:rgba(239,68,68,0.10);color:var(--red);}
+.b-neu{background:rgba(40,40,40,0.07);color:var(--black);}
+.b-yr{background:rgba(247,198,0,0.15);color:#7a6200;}
+
+/* ══ GRIDS ══ */
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
+.g11{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.g31{display:grid;grid-template-columns:3fr 2fr;gap:20px;margin-bottom:20px;}
+
+/* ══ CARDS ══ */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  transition:box-shadow .2s,transform .2s;
+  box-shadow:var(--shadow-sm);
+}
+.card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
+.card-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--black);margin-bottom:4px;}
+.tdot{
+  width:8px;height:8px;background:var(--yellow);border-radius:50%;flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(247,198,0,0.2);
+}
+.card-sub{font-size:11px;color:var(--faint);margin-bottom:16px;font-weight:500;}
+.mb20{margin-bottom:20px;}
+.ch{position:relative;height:270px;}
+.chm{position:relative;height:255px;}
+.chs{position:relative;height:220px;}
+.ch300{position:relative;height:300px;}
+
+/* ══ PROGRESS BARS ══ */
+.prog-list{display:flex;flex-direction:column;gap:14px;margin-top:6px;}
+.prog-labels{display:flex;justify-content:space-between;margin-bottom:5px;align-items:center;}
+.prog-labels .lbl{font-size:12px;font-weight:600;color:var(--black);max-width:175px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prog-labels .val{font-size:12px;font-weight:800;color:var(--black);}
+.prog-track{background:#F0F0F0;border-radius:6px;height:8px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#c49e00,var(--yellow));transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* ══ TABLE CARD ══ */
+.tcard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;margin-bottom:20px;
+  box-shadow:var(--shadow-sm);
+}
+.ttop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+
+/* ══ FILTER TABS ══ */
+.ftabs{display:flex;gap:6px;flex-wrap:wrap;background:#F4F5F7;padding:4px;border-radius:12px;}
+.ftab{
+  background:transparent;border:none;
+  color:var(--muted);padding:6px 14px;
+  border-radius:8px;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .18s;
+}
+.ftab.on{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,0.12);font-weight:700;}
+.ftab:hover:not(.on){background:rgba(255,255,255,0.6);color:var(--black);}
+
+/* ══ TABLES ══ */
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:2px solid var(--yellow);}
+thead th{
+  text-align:left;padding:12px 14px;
+  font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.2px;
+  background:linear-gradient(to bottom,rgba(247,198,0,0.06),rgba(247,198,0,0.02));
+}
+thead th.num{text-align:right;}
+tbody tr{border-bottom:1px solid #F3F4F6;transition:background .12s;}
+tbody tr:hover{background:#FAFAFA;}
+tbody td{padding:12px 14px;font-size:13px;color:var(--black);}
+tbody td.num{text-align:right;font-weight:700;}
+tbody td.total-col{font-weight:900;color:#8a6200;}
+tfoot tr{border-top:2px solid var(--yellow);background:rgba(247,198,0,0.05);}
+tfoot td{padding:12px 14px;font-size:12px;font-weight:900;}
+tfoot td.num{text-align:right;}
+.td-dim{color:var(--faint);font-size:12px;}
+.td-val{font-weight:800;}
+.sp{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;}
+.sp-rec{background:rgba(16,185,129,0.10);color:#059669;}
+.sp-open{background:rgba(247,198,0,0.15);color:#92620a;}
+.sp-venc{background:#EF4444;color:#fff;animation:pulse 1.8s infinite;}
+.share-pill{display:inline-block;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(247,198,0,0.15);color:#7a6200;}
+
+/* ══ CLIENT CARDS ══ */
+.cli-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.cli-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:0;}
+.cli-mes-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:16px;
+  position:relative;overflow:hidden;
+  transition:box-shadow .18s;
+}
+.cli-mes-card:hover{box-shadow:var(--shadow-md);}
+.cli-mes-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#c49e00,var(--yellow));}
+.cli-mes-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.cli-mes-total{font-size:16px;font-weight:900;color:var(--black);margin-bottom:12px;}
+.cli-bar-item{margin-bottom:8px;}
+.cli-bar-label{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.cli-bar-label .cname{font-weight:600;color:var(--black);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cli-bar-label .cval{font-weight:700;color:var(--muted);}
+.cli-bar-track{background:#EBEBEB;border-radius:4px;height:5px;overflow:hidden;}
+.cli-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#c49e00,var(--yellow));}
+.mini-bar-wrap{display:flex;flex-direction:column;gap:3px;}
+.mini-bar{height:5px;border-radius:3px;min-width:2px;}
+.bar26{background:var(--yellow);}.bar25{background:#D1D5DB;}
+.up{color:var(--green);}.down{color:var(--red);}
+@media(max-width:1200px){
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
+  .g21,.g11,.g31{grid-template-columns:1fr;}
+  .cli-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  /* ── GERAL ── */
+  .header{padding:0 14px;height:auto;min-height:56px;flex-wrap:wrap;gap:0;}
+  .header-left{flex:1;min-width:0;padding:10px 0;}
+  .header-right{display:none;}
+  .nav-tabs{padding:0 10px;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .nav-tabs::-webkit-scrollbar{display:none;}
+  .nav-tab{font-size:11px;padding:12px 10px;white-space:nowrap;}
+  .content{padding:12px 10px;}
+  .brand-name{font-size:20px;}
+  .logo-wrap svg{width:36px;height:22px;}
+  .kpi-badge{font-size:10px;padding:2px 6px;}
+  .hdiv{display:none;}
+
+  /* ── KPI CARDS ── */
+  .kpi-row{grid-template-columns:1fr 1fr;gap:10px;}
+  .kpi-row[style]{grid-template-columns:1fr 1fr !important;}
+  .kpi{padding:14px 12px 12px;}
+  .kpi-val{font-size:15px;}
+  .kpi.primary .kpi-val{font-size:17px;}
+
+  /* ── GRIDS ── */
+  .g21,.g11,.g31{grid-template-columns:1fr;gap:12px;}
+
+  /* ── TABS / FILTROS ── */
+  .ttop{flex-direction:column;align-items:flex-start;gap:10px;}
+  .ftabs{flex-wrap:wrap;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .ftab{font-size:11px;padding:5px 10px;}
+
+  /* ── TABELAS ── */
+  table{font-size:11px;}
+  table th,table td{padding:6px 5px;}
+
+  /* ── COMPARATIVO ── */
+  #compBody tr td:last-child{display:none;}
+  #compBody tr th:last-child{display:none;}
+  table thead tr th:last-child{display:none;}
+
+  /* ── POR CLIENTE ── */
+  .tcard{padding:14px 10px;}
+  .cli-hdr{flex-direction:column;align-items:flex-start !important;gap:10px;}
+  .cli-grid{grid-template-columns:1fr !important;}
+  .cli-mes-card{padding:12px;}
+  .cli-mes-label{font-size:12px;}
+  .cli-mes-total{font-size:14px;}
+  .cli-bar-label .cname{font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cli-bar-label .cval{font-size:11px;}
+  .cli-table{font-size:11px;}
+  .cli-table th,.cli-table td{padding:5px 4px;white-space:nowrap;}
+  #vTabela{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+  #viewTabs .ftab{font-size:11px;padding:5px 8px;}
+  #anoTabs .ftab{font-size:11px;padding:5px 10px;}
+
+  /* ── NOTAS EMITIDAS ── */
+  #anoNotasTabs,.ftabs#notasTabs{flex-wrap:wrap;}
+  button[onclick="exportarExcel()"],button[onclick="imprimirNotas()"]{
+    font-size:11px;padding:6px 10px;
+  }
+  .prog-labels .lbl{font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+}
+@media(max-width:480px){
+  .kpi-row{grid-template-columns:1fr;}
+  .kpi-row[style]{grid-template-columns:1fr !important;}
+  .header-right .badge{display:none;}
+  .nav-tab{font-size:10px;padding:8px 8px;}
+  .kpi-val{font-size:14px;}
+  .kpi.primary .kpi-val{font-size:16px;}
+  table{font-size:10px;}
+  table th,table td{padding:4px 3px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-wrap">
+      <svg width="52" height="32" viewBox="0 0 104 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/>
+        <rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/>
+        <circle cx="74" cy="30" r="17" fill="#F7C600"/>
+      </svg>
+      <div>
+        <div class="brand-name">ontrade</div>
+        <div class="brand-tag">the new trade is on</div>
+      </div>
+    </div>
+    <div class="hdiv"></div>
+    <div class="header-info">
+      <h2>Dashboard Financeiro 2026</h2>
+      <p>Notas Emitidas · Janeiro a Maio</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="update-badge">✓ Atualizado 02/06/2026 19:11</div>
+    <div class="pill"><strong>138</strong> notas · Maio</div>
+  </div>
+</div>
+
+<!-- NAVEGAÇÃO -->
+<div class="nav-tabs">
+  <div class="nav-tab on" onclick="trocarView('v-geral')">📊 Visão Geral</div>
+  <div class="nav-tab" onclick="trocarView('v-comp')">📈 Comparativo 2025 vs 2026</div>
+  <div class="nav-tab" onclick="trocarView('v-cli')">👥 Por Cliente</div>
+  <div class="nav-tab" onclick="trocarView('v-notas')">📋 Notas Emitidas</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     VIEW: VISÃO GERAL
+════════════════════════════════════════ -->
+<div id="v-geral" class="view on">
+<div class="content">
+  <div class="kpi-row">
+    <div class="kpi primary">
+      <span class="kpi-icon">💰</span>
+      <div class="kpi-label">Faturamento Total 2026</div>
+      <div class="kpi-val">R$ 21.950.062,75</div>
+      <span class="kpi-badge b-neu">Jan–Maio · 138 notas</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">✅</span>
+      <div class="kpi-label">Recebido</div>
+      <div class="kpi-val">R$ 18.256.600,70</div>
+      <span class="kpi-badge b-up">83.2% do total</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">🕐</span>
+      <div class="kpi-label">Em Aberto</div>
+      <div class="kpi-val">R$ 3.693.462,05</div>
+      <span class="kpi-badge b-down">16.8% do total</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">🏆</span>
+      <div class="kpi-label">Melhor Mês</div>
+      <div class="kpi-val">Março</div>
+      <span class="kpi-badge b-yr">R$ 6.814.805,62 +109.9%</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">📈</span>
+      <div class="kpi-label">Crescimento vs 2025</div>
+      <div class="kpi-val">+55.0%</div>
+      <span class="kpi-badge b-up">mesmo período</span>
+    </div>
+  </div>
+  <div class="g21 mb20">
+    <div class="card"><div class="card-title"><span class="tdot"></span>Faturamento Mensal 2026</div><div class="card-sub">Valor total por mês (R$)</div><div class="ch"><canvas id="barMes"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="tdot"></span>Status de Pagamento</div><div class="card-sub">Distribuição financeira</div><div class="ch"><canvas id="donut"></canvas></div></div>
+  </div>
+  <div class="g11 mb20">
+    <div class="card"><div class="card-title"><span class="tdot"></span>Ranking de Clientes</div><div class="card-sub">Top clientes acumulado 2026</div><div class="prog-list" id="progCli"></div></div>
+    <div class="card"><div class="card-title"><span class="tdot"></span>Evolução Acumulada</div><div class="card-sub">Faturamento acumulado mês a mês</div><div class="chm"><canvas id="lineAcum"></canvas></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     VIEW: COMPARATIVO
+════════════════════════════════════════ -->
+<div id="v-comp" class="view">
+<div class="content">
+  <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi primary">
+      <span class="kpi-icon">📈</span>
+      <div class="kpi-label">Crescimento (período comparável)</div>
+      <div class="kpi-val">+55.0%</div>
+      <span class="kpi-badge b-neu">R$ 7.793.001,04 a mais em 2026</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">🟡</span>
+      <div class="kpi-label">2026 (período comparável)</div>
+      <div class="kpi-val">R$ 21.950.062,75</div>
+      <span class="kpi-badge b-yr">Jan–Maio</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">⬛</span>
+      <div class="kpi-label">2025 (mesmo período)</div>
+      <div class="kpi-val">R$ 14.157.061,71</div>
+      <span class="kpi-badge b-neu">Jan–Maio</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">📅</span>
+      <div class="kpi-label">Total Anual 2025</div>
+      <div class="kpi-val">R$ 37.692.482,27</div>
+      <span class="kpi-badge b-neu">12 meses completos</span>
+    </div>
+  </div>
+  <div class="g31 mb20">
+    <div class="card"><div class="card-title"><span class="tdot"></span>Faturamento Mensal — 2025 vs 2026</div><div class="card-sub">Comparativo mês a mês</div><div class="ch"><canvas id="barComp"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="tdot"></span>Variação % por Mês</div><div class="card-sub">Crescimento de 2026 vs 2025</div><div class="ch"><canvas id="barVar"></canvas></div></div>
+  </div>
+  <div class="g11 mb20">
+    <div class="card"><div class="card-title"><span class="tdot"></span>Evolução Acumulada 2025 vs 2026</div><div class="card-sub">Curvas de crescimento sobrepostas</div><div class="chm"><canvas id="lineComp"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="tdot"></span>Perfil Mensal — Radar</div><div class="card-sub">Distribuição por mês nos dois anos</div><div class="chm"><canvas id="radar"></canvas></div></div>
+  </div>
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Tabela Comparativa Mês a Mês</div>
+    <div class="card-sub">Variação absoluta e percentual</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:480px;"><thead><tr><th>Mês</th><th class="num">2025</th><th class="num">2026</th><th class="num">Var. R$</th><th class="num">Var. %</th><th>Visual</th></tr></thead>
+    <tbody id="compBody"></tbody></table></div>
+  </div>
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>2025 — Ano Completo (12 meses)</div>
+    <div class="card-sub">Referência anual completa</div>
+    <div class="chs"><canvas id="bar25full"></canvas></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     VIEW: POR CLIENTE
+════════════════════════════════════════ -->
+<div id="v-cli" class="view">
+<div class="content">
+  <div class="tcard">
+    <div class="cli-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <div class="card-title"><span class="tdot"></span>Faturamento por Cliente — Mês a Mês</div>
+        <div class="card-sub" id="cliSubtitle">Selecione o ano e a visualização</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Ano:</span>
+          <div class="ftabs" id="anoTabs">
+            <div class="ftab on" onclick="setAno(this,'2026')">2026</div>
+            <div class="ftab" onclick="setAno(this,'2025')">2025</div>
+          </div>
+        </div>
+        <div class="ftabs" id="viewTabs">
+          <div class="ftab on" onclick="cliView(this,'tabela')">📋 Tabela</div>
+          <div class="ftab" onclick="cliView(this,'cards')">🗂 Cards</div>
+          <div class="ftab" onclick="cliView(this,'grafico')">📊 Gráfico</div>
+        </div>
+      </div>
+    </div>
+    <div id="vTabela" style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;">
+      <table class="cli-table" id="cliTable" style="min-width:520px;font-size:12px;">
+        <thead><tr id="cliThead"></tr></thead>
+        <tbody id="cliTbody"></tbody>
+        <tfoot id="cliTfoot"></tfoot>
+      </table>
+    </div>
+    <div id="vCards" style="display:none;">
+      <div class="cli-grid" id="cliCards" style="display:grid;gap:12px;"></div>
+    </div>
+    <div id="vGrafico" style="display:none;">
+      <div style="position:relative;height:300px;min-height:220px;">
+        <canvas id="stackedBar"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     VIEW: NOTAS EMITIDAS
+════════════════════════════════════════ -->
+<div id="v-notas" class="view">
+<div class="content">
+  <div class="tcard">
+    <div class="ttop">
+      <div>
+        <div class="card-title"><span class="tdot"></span>Notas Emitidas</div>
+        <div class="card-sub">Filtre por ano e mês</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="ftabs" id="anoNotasTabs">
+          <div class="ftab on" onclick="setAnoNotas(this,2026)">2026</div>
+          <div class="ftab" onclick="setAnoNotas(this,2025)">2025</div>
+        </div>
+        <div class="ftabs" id="notasTabs">
+          <div class="ftab on" onclick="filterNotas(this,'Todos')">Todos</div>
+          <span id="mesesTabs26"><div class="ftab" onclick="filterNotas(this,'Janeiro')">Janeiro</div><div class="ftab" onclick="filterNotas(this,'Fevereiro')">Fevereiro</div><div class="ftab" onclick="filterNotas(this,'Marco')">Março</div><div class="ftab" onclick="filterNotas(this,'Abril')">Abril</div><div class="ftab" onclick="filterNotas(this,'Maio')">Maio</div></span>
+          <span id="mesesTabs25" style="display:none"><div class="ftab" onclick="filterNotas(this,'Janeiro')">Janeiro</div><div class="ftab" onclick="filterNotas(this,'Fevereiro')">Fevereiro</div><div class="ftab" onclick="filterNotas(this,'Marco')">Marco</div><div class="ftab" onclick="filterNotas(this,'Abril')">Abril</div><div class="ftab" onclick="filterNotas(this,'Maio')">Maio</div><div class="ftab" onclick="filterNotas(this,'Junho')">Junho</div><div class="ftab" onclick="filterNotas(this,'Julho')">Julho</div><div class="ftab" onclick="filterNotas(this,'Agosto')">Agosto</div><div class="ftab" onclick="filterNotas(this,'Setembro')">Setembro</div><div class="ftab" onclick="filterNotas(this,'Outubro')">Outubro</div><div class="ftab" onclick="filterNotas(this,'Novembro')">Novembro</div><div class="ftab" onclick="filterNotas(this,'Dezembro')">Dezembro</div></span>
+        </div>
+        <button onclick="exportarExcel()" style="display:inline-flex;align-items:center;gap:6px;background:#1AAE6F;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+          ⬇️ Exportar Excel
+        </button>
+        <button onclick="imprimirNotas()" style="display:inline-flex;align-items:center;gap:6px;background:#282828;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+          🖨️ Imprimir
+        </button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:600px;">
+      <thead><tr><th>Mês</th><th>NF</th><th>Cliente</th><th>Observação</th><th>Tipo</th><th class="num">Valor (R$)</th><th>Vencimento</th><th>Status</th></tr></thead>
+      <tbody id="notasBody"></tbody>
+      <tfoot id="notasFoot" style="background:#FFFBEA;border-top:2px solid var(--yellow);"></tfoot>
+    </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div style="border-top:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--faint);background:var(--white);">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
+    <span>ontrade · Dashboard Financeiro · Confidencial</span>
+  </div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">02/06/2026 19:11</strong></div>
+</div>
+
+<script>
+// ══ DADOS GERADOS AUTOMATICAMENTE ══
+const Y='#F7C600',B='#282828',GRAY='#C8C8C8',MUTED='#A0A5B0',GREEN='#1AAE6F',RED='#E03B3B';
+const CLI_COLORS=['#F7C600','#282828','#A0A5B0','#1AAE6F','#E03B3B','#6B7AE0','#E07A3B','#3BB5E0','#B03BE0','#3BE0C8'];
+const TT={backgroundColor:'#FFF',borderColor:Y,borderWidth:1.5,titleColor:B,bodyColor:B,padding:10};
+
+const MESES_26    = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio"];
+const LABELS_26   = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio"];
+const VALS_26     = [2570505.2, 4161261.03, 6814805.62, 4566743.74, 3836747.16];
+const MESES_25    = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const LABELS_25   = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const VALS_25     = [3053418.5, 2273947.86, 3247337.06, 2455859.34, 3126498.95, 2820640.9, 2802646.77, 2890174.18, 3171451.56, 3319085.47, 3109547.34, 5421874.34];
+const MESES_C     = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio"];
+const LABELS_C    = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio"];
+const VALS_26C    = [2570505.2, 4161261.03, 6814805.62, 4566743.74, 3836747.16];
+const VALS_25C    = [3053418.5, 2273947.86, 3247337.06, 2455859.34, 3126498.95];
+const ACUM_26C    = [2570505.2, 6731766.23, 13546571.850000001, 18113315.590000004, 21950062.750000004];
+const ACUM_25C    = [3053418.5, 5327366.359999999, 8574703.42, 11030562.76, 14157061.71];
+const VAR_PCT     = [-15.8, 83.0, 109.9, 86.0, 22.7];
+const RECEBIDO    = 18256600.7;
+const EM_ABERTO   = 3693462.05;
+const TOTAL_26    = 21950062.75;
+const CLI_26      = {"PLAYSTATION": {"Janeiro": 556920.81, "Fevereiro": 2105872.31, "Marco": 4460537.02, "Abril": 2533629.39, "Maio": 584800.4}, "NISSIN FOODS": {"Janeiro": 1439148.93, "Fevereiro": 1358045.04, "Marco": 1359053.04, "Abril": 1310839.41, "Maio": 2108991.54}, "KELCO PET CARE": {"Janeiro": 442555.18, "Fevereiro": 455253.82, "Marco": 448628.64, "Abril": 454768.83, "Maio": 479548.08}, "WHIRLPOOL S.A": {"Janeiro": 108823.18, "Fevereiro": 208765.41, "Marco": 241704.75, "Abril": 100439.07, "Maio": 252008.25}, "ROBERT BOSCH": {"Janeiro": 23057.1, "Fevereiro": 23456.1, "Marco": 203847.69, "Abril": 167067.04, "Maio": 170081.74}, "TCL SEMP S.A": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 182670.95}, "MINERVA S.A": {"Janeiro": 0, "Fevereiro": 9868.35, "Marco": 74233.34, "Abril": 0, "Maio": 31316.07}, "LACTALIS": {"Janeiro": 0, "Fevereiro": 0, "Marco": 26801.14, "Abril": 0, "Maio": 27330.13}};
+const CLI_25      = {"NISSIN FOODS": {"Janeiro": 973493.18, "Fevereiro": 990273.46, "Marco": 952495.42, "Abril": 1100923.71, "Maio": 1285173.06, "Junho": 1301282.42, "Julho": 1287626.11, "Agosto": 1358326.84, "Setembro": 1327232.54, "Outubro": 1358144.66, "Novembro": 1386019.97, "Dezembro": 1391275.39}, "PLAYSTATION": {"Janeiro": 1226521.04, "Fevereiro": 446444.34, "Marco": 1387729.02, "Abril": 497772.13, "Maio": 486376.93, "Junho": 763747.2, "Julho": 525048.33, "Agosto": 567887.11, "Setembro": 874904.99, "Outubro": 861392.36, "Novembro": 963062.54, "Dezembro": 3189271.13}, "WHIRLPOOL S.A": {"Janeiro": 465461.13, "Fevereiro": 418555.02, "Marco": 491049.13, "Abril": 438248.72, "Maio": 573687.87, "Junho": 505286.3, "Julho": 477837.2, "Agosto": 537540.57, "Setembro": 536648.57, "Outubro": 669606.02, "Novembro": 260220.66, "Dezembro": 172763.18}, "KELCO PET CARE": {"Janeiro": 364886.05, "Fevereiro": 395617.94, "Marco": 391174.99, "Abril": 395857.68, "Maio": 400053.23, "Junho": 0, "Julho": 396774.05, "Agosto": 403222.82, "Setembro": 399150.21, "Outubro": 405259.77, "Novembro": 416627.49, "Dezembro": 418217.52}, "BIMBO DO BRASIL LTDA": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 358150.76, "Junho": 226726.03, "Julho": 62948.48, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0}, "ROBERT BOSCH LTDA": {"Janeiro": 23057.1, "Fevereiro": 23057.1, "Marco": 24888.5, "Abril": 23057.1, "Maio": 23057.1, "Junho": 23598.95, "Julho": 23850.19, "Agosto": 23196.84, "Setembro": 23598.95, "Outubro": 0, "Novembro": 0, "Dezembro": 0}, "MINERVA S.A": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0, "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 61083.93, "Dezembro": 117389.48}, "LACTALIS": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0, "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 109900.54}, "ROBERT BOSCH": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0, "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 24682.66, "Novembro": 22532.75, "Dezembro": 23057.1}, "CALOI NORTE S.A": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0, "Julho": 28562.41, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0}, "TCL SEMP": {"Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0, "Julho": 0, "Agosto": 0, "Setembro": 9916.3, "Outubro": 0, "Novembro": 0, "Dezembro": 0}};
+const NOTAS_26    = [{"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 5580.25, "status": "RECEBIDO", "obs": "REINAUGURAÇÃO ATIVAÇÃO MAGAZINE E GCB", "tipo": "NOTA FISCAL", "nf": "2655", "emissao": "2026-01-05", "vencimento": "2026-03-06"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 5011.11, "status": "RECEBIDO", "obs": "LOGÍSTICA THE BOSS 2025", "tipo": "NOTA FISCAL", "nf": "2656", "emissao": "2026-01-05", "vencimento": "2026-03-06"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 12018.52, "status": "RECEBIDO", "obs": "LOGÍSTICA THE BOSS 2025", "tipo": "NOTA FISCAL", "nf": "2657", "emissao": "2026-01-05", "vencimento": "2026-03-06"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 92995.16, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2659", "emissao": "2026-01-05", "vencimento": "2026-02-13"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 290252.65, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2660", "emissao": "2026-01-05", "vencimento": "2026-02-13"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS DEZEMBRO/2025", "tipo": "NOTA FISCAL", "nf": "2661", "emissao": "2026-01-05", "vencimento": "2026-03-13"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 76164.86, "status": "RECEBIDO", "obs": "KITCHENAID 12/2025", "tipo": "NOTA FISCAL", "nf": "2663", "emissao": "2026-01-08", "vencimento": "2026-03-06"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 27456.8, "status": "RECEBIDO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2666", "emissao": "2026-01-12", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 35159.73, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2667", "emissao": "2026-01-12", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 25740.02, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2668", "emissao": "2026-01-12", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 30829.89, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2669", "emissao": "2026-01-12", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "ROBERT BOSCH", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2670", "emissao": "2026-01-12", "vencimento": "2026-04-17"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2673", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 47584.41, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2674", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2675", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2676", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 550.61, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2678", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 9229.62, "status": "RECEBIDO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2679", "emissao": "2026-01-15", "vencimento": "2026-02-25"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 648688.19, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2684", "emissao": "2026-01-23", "vencimento": "2026-02-13"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 407212.93, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2685", "emissao": "2026-01-23", "vencimento": "2026-02-13"}, {"mes": "Janeiro", "cliente": "KELCO PET CARE", "valor": 143204.77, "status": "RECEBIDO", "obs": "PROMOTORES 12/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2691", "emissao": "2026-01-20", "vencimento": "2026-01-29"}, {"mes": "Janeiro", "cliente": "KELCO PET CARE", "valor": 299350.41, "status": "RECEBIDO", "obs": "PROMOTORES 12/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2692", "emissao": "2026-01-20", "vencimento": "2026-01-29"}, {"mes": "Fevereiro", "cliente": "ROBERT BOSCH", "valor": 23456.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2719", "emissao": "2026-02-09", "vencimento": "2026-05-15"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 19573.02, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA DEGUSTAÇÃO C&C", "tipo": "NOTA FISCAL", "nf": "2723", "emissao": "2026-02-10", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 56703.65, "status": "RECEBIDO", "obs": "OPERAÇÃO DEGUSTAÇÃO C&C PEDIDO N° 291286", "tipo": "NOTA FISCAL", "nf": "2724", "emissao": "2026-02-10", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "MINERVA S.A", "valor": 9868.35, "status": "RECEBIDO", "obs": "AÇÕES JANEIRO / 2026", "tipo": "NOTA FISCAL", "nf": "2725", "emissao": "2026-02-10", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "WHIRLPOOL S.A", "valor": 10543.71, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS JANEIRO/2026", "tipo": "NOTA FISCAL", "nf": "2732", "emissao": "2026-02-12", "vencimento": "2026-04-17"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 89950.21, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2733", "emissao": "2026-02-12", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 324799.03, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2734", "emissao": "2026-02-12", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 27227.89, "status": "RECEBIDO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2738", "emissao": "2026-02-19", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 36692.64, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2739", "emissao": "2026-02-20", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 25933.27, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2740", "emissao": "2026-02-20", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 29679.99, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2741", "emissao": "2026-02-20", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "WHIRLPOOL S.A", "valor": 198221.7, "status": "RECEBIDO", "obs": "KITCHENAID 01/2026", "tipo": "NOTA FISCAL", "nf": "2743", "emissao": "2026-02-22", "vencimento": "2026-04-24"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2744", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 54878.88, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2745", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 305082.42, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2746", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2747", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 188.48, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2748", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 8817.49, "status": "RECEBIDO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2749", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 8746.91, "status": "RECEBIDO", "obs": "ADICIONAL LICENÇA", "tipo": "NOTA FISCAL", "nf": "2750", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 145289.98, "status": "RECEBIDO", "obs": "LOGÍSTICA MESAS CARREFOUR", "tipo": "NOTA FISCAL", "nf": "2751", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 57087.78, "status": "RECEBIDO", "obs": "LOGÍSTICA E POSITIVAÇÃO 100 LOJAS", "tipo": "NOTA FISCAL", "nf": "2752", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 27002.87, "status": "RECEBIDO", "obs": "LOGÍSTICA E POSITIVAÇÃO 102 LOJAS", "tipo": "NOTA FISCAL", "nf": "2753", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 2601.74, "status": "RECEBIDO", "obs": "MANUTENÇÃO KABUM", "tipo": "NOTA FISCAL", "nf": "2754", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 4074.07, "status": "RECEBIDO", "obs": "MANUTENÇÃO KABUM", "tipo": "NOTA FISCAL", "nf": "2755", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 1281400.23, "status": "RECEBIDO", "obs": "MOBILIÁRIOS PLAYSTATION", "tipo": "NOTA FISCAL", "nf": "456 - OLÉ EVENTOS", "emissao": "2026-02-23", "vencimento": "2026-03-25"}, {"mes": "Fevereiro", "cliente": "KELCO PET CARE", "valor": 140417.46, "status": "RECEBIDO", "obs": "PROMOTORES 01/2026 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2756", "emissao": "2026-02-24", "vencimento": "2026-03-06"}, {"mes": "Fevereiro", "cliente": "KELCO PET CARE", "valor": 296109.22, "status": "RECEBIDO", "obs": "PROMOTORES 01/2026 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2757", "emissao": "2026-02-24", "vencimento": "2026-03-06"}, {"mes": "Fevereiro", "cliente": "KELCO PET CARE", "valor": 18727.14, "status": "RECEBIDO", "obs": "PROMOTORES DESPESAS EXTRAS 01/2026", "tipo": "NOTA FISCAL", "nf": "2758", "emissao": "2026-02-24", "vencimento": "2026-03-06"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 535406.37, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2759", "emissao": "2026-02-24", "vencimento": "2026-03-13"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 331612.76, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2760", "emissao": "2026-02-24", "vencimento": "2026-03-13"}, {"mes": "Marco", "cliente": "MINERVA S.A", "valor": 36291.93, "status": "RECEBIDO", "obs": "AÇÕES FEVEREIRO / 2026", "tipo": "NOTA FISCAL", "nf": "2762", "emissao": "2026-03-02", "vencimento": "2026-04-03"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 41111.01, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2773", "emissao": "2026-03-06", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 26752.09, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2774", "emissao": "2026-03-06", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 29679.99, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2775", "emissao": "2026-03-06", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 27227.89, "status": "RECEBIDO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2776", "emissao": "2026-03-06", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "WHIRLPOOL S.A", "valor": 10543.71, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS FEVEREIRO/2026", "tipo": "NOTA FISCAL", "nf": "2778", "emissao": "2026-03-06", "vencimento": "2026-05-08"}, {"mes": "Marco", "cliente": "ROBERT BOSCH", "valor": 23057.1, "status": "EM ABERTO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2779", "emissao": "2026-03-06", "vencimento": "2026-06-19"}, {"mes": "Marco", "cliente": "ROBERT BOSCH", "valor": 180790.59, "status": "RECEBIDO", "obs": "PROMOTORIA EXTRA BOSCH", "tipo": "NOTA FISCAL", "nf": "2780", "emissao": "2026-03-06", "vencimento": "2026-05-08"}, {"mes": "Marco", "cliente": "WHIRLPOOL S.A", "valor": 231161.04, "status": "RECEBIDO", "obs": "KITCHENAID 02/2026", "tipo": "NOTA FISCAL", "nf": "2781", "emissao": "2026-03-09", "vencimento": "2026-05-15"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2787", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 42123.56, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2788", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 305082.42, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2789", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2790", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 393.75, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2791", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 7715.88, "status": "RECEBIDO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2792", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 8746.91, "status": "RECEBIDO", "obs": "LICENÇAS", "tipo": "NOTA FISCAL", "nf": "2793", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 1380448.0, "status": "RECEBIDO", "obs": "LOGÍSTICA MOBILIÁRIO MAGALU", "tipo": "NOTA FISCAL", "nf": "2794", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 14462.79, "status": "RECEBIDO", "obs": "DIFERENÇA LOGÍSTICA CARREFOUR", "tipo": "NOTA FISCAL", "nf": "2795", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 141240.89, "status": "RECEBIDO", "obs": "MANUTENÇÃO MOBILIÁRIOS", "tipo": "NOTA FISCAL", "nf": "2796", "emissao": "2026-03-13", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 2078311.1, "status": "RECEBIDO", "obs": "DISPLAYS PLAYSTATION MAGALU", "tipo": "NOTA FISCAL", "nf": "458 - OLÉ EVENTOS", "emissao": "2026-03-16", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 19573.02, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA DEGUSTAÇÃO C&C", "tipo": "NOTA FISCAL", "nf": "2800", "emissao": "2026-03-18", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 53707.08, "status": "RECEBIDO", "obs": "OPERAÇÃO DEGUSTAÇÃO C&C PEDIDO N° 291286", "tipo": "NOTA FISCAL", "nf": "2801", "emissao": "2026-03-18", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 94912.47, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2802", "emissao": "2026-03-18", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 324004.56, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2803", "emissao": "2026-03-18", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "LACTALIS", "valor": 26801.14, "status": "RECEBIDO", "obs": "DEGUSTAÇÃO PENSE ZERO - VELOCITY", "tipo": "NOTA FISCAL", "nf": "2804", "emissao": "2026-03-18", "vencimento": "2026-05-18"}, {"mes": "Marco", "cliente": "KELCO PET CARE", "valor": 133986.18, "status": "RECEBIDO", "obs": "PROMOTORES 02/2026 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2805", "emissao": "2026-03-20", "vencimento": "2026-04-03"}, {"mes": "Marco", "cliente": "KELCO PET CARE", "valor": 303913.11, "status": "RECEBIDO", "obs": "PROMOTORES 02/2026 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2806", "emissao": "2026-03-20", "vencimento": "2026-04-03"}, {"mes": "Marco", "cliente": "KELCO PET CARE", "valor": 10729.35, "status": "RECEBIDO", "obs": "PROMOTORES DESPESAS EXTRAS 02/2026", "tipo": "NOTA FISCAL", "nf": "2807", "emissao": "2026-03-20", "vencimento": "2026-04-03"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 528239.79, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2811", "emissao": "2026-03-23", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 338616.12, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2812", "emissao": "2026-03-23", "vencimento": "2026-04-10"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 266073.07, "status": "RECEBIDO", "obs": "PRODUÇÃO DE MATERIAL", "tipo": "NOTA FISCAL", "nf": "2813", "emissao": "2026-03-24", "vencimento": "2026-04-27"}, {"mes": "Marco", "cliente": "MINERVA S.A", "valor": 37941.41, "status": "RECEBIDO", "obs": "AÇÕES MARÇO / 2026", "tipo": "NOTA FISCAL", "nf": "2814", "emissao": "2026-03-31", "vencimento": "2026-05-04"}, {"mes": "Abril", "cliente": "ROBERT BOSCH", "valor": 23196.84, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2817", "emissao": "2026-04-06", "vencimento": "2026-07-10"}, {"mes": "Abril", "cliente": "ROBERT BOSCH", "valor": 143870.2, "status": "EM ABERTO", "obs": "PROMOTORIA EXTRA BOSCH", "tipo": "NOTA FISCAL", "nf": "2819", "emissao": "2026-04-07", "vencimento": "2026-06-12"}, {"mes": "Abril", "cliente": "WHIRLPOOL S.A", "valor": 89895.36, "status": "EM ABERTO", "obs": "KITCHENAID 03/2026", "tipo": "NOTA FISCAL", "nf": "2827", "emissao": "2026-04-10", "vencimento": "2026-06-12"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 33034.84, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2828", "emissao": "2026-04-10", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 24575.89, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2829", "emissao": "2026-04-10", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "WHIRLPOOL S.A", "valor": 10543.71, "status": "EM ABERTO", "obs": "PROMOTOR PEÇAS MARÇO/2026", "tipo": "NOTA FISCAL", "nf": "2831", "emissao": "2026-04-13", "vencimento": "2026-06-12"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 31054.85, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2832", "emissao": "2026-04-13", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 27227.89, "status": "RECEBIDO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2833", "emissao": "2026-04-13", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 144346.05, "status": "RECEBIDO", "obs": "PROMOTORES 03/2026 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2834", "emissao": "2026-04-14", "vencimento": "2026-05-22"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 296296.78, "status": "RECEBIDO", "obs": "PROMOTORES 03/2026 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2835", "emissao": "2026-04-14", "vencimento": "2026-05-22"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 14126.0, "status": "RECEBIDO", "obs": "PROMOTORES DESPESAS EXTRAS 03/2026", "tipo": "NOTA FISCAL", "nf": "2836", "emissao": "2026-04-14", "vencimento": "2026-05-22"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 23495.06, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA DEGUSTAÇÃO C&C", "tipo": "NOTA FISCAL", "nf": "2839", "emissao": "2026-04-14", "vencimento": "2026-05-08"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 58960.68, "status": "RECEBIDO", "obs": "OPERAÇÃO DEGUSTAÇÃO C&C PEDIDO N° 291286", "tipo": "NOTA FISCAL", "nf": "2840", "emissao": "2026-04-14", "vencimento": "2026-05-08"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2852", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 22051.11, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2853", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 305082.42, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2854", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2855", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 838.98, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2856", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 2118.83, "status": "RECEBIDO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2857", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 8476.91, "status": "RECEBIDO", "obs": "LICENÇAS", "tipo": "NOTA FISCAL", "nf": "2858", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 1739475.48, "status": "RECEBIDO", "obs": "MOBILIÁRIOS CARREFOUR ONDA 02", "tipo": "NOTA FISCAL", "nf": "264 - ONTRADE VENDA", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 248524.52, "status": "RECEBIDO", "obs": "LOGÍSTICA MOBILIÁRIOS CARREFOUR ONDA 02", "tipo": "NOTA FISCAL", "nf": "2859", "emissao": "2026-04-17", "vencimento": "2026-05-25"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 743907.65, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2862", "emissao": "2026-04-23", "vencimento": "2026-05-15"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 484476.02, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2863", "emissao": "2026-04-23", "vencimento": "2026-05-15"}, {"mes": "Maio", "cliente": "MINERVA S.A", "valor": 31316.07, "status": "EM ABERTO", "obs": "AÇÕES ABRIL / 2026", "tipo": "NOTA FISCAL", "nf": "2866", "emissao": "2026-05-07", "vencimento": "2026-06-12"}, {"mes": "Maio", "cliente": "ROBERT BOSCH", "valor": 23735.58, "status": "EM ABERTO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2869", "emissao": "2026-05-08", "vencimento": "2026-08-10"}, {"mes": "Maio", "cliente": "ROBERT BOSCH", "valor": 146346.16, "status": "EM ABERTO", "obs": "PROMOTORIA EXTRA BOSCH", "tipo": "NOTA FISCAL", "nf": "2870", "emissao": "2026-05-08", "vencimento": "2026-07-10"}, {"mes": "Maio", "cliente": "LACTALIS", "valor": 27330.13, "status": "EM ABERTO", "obs": "DEGUSTAÇÕES & DEGUSTAÇÕES KIDS", "tipo": "NOTA FISCAL", "nf": "2871", "emissao": "2026-05-08", "vencimento": "2026-08-14"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 10543.71, "status": "EM ABERTO", "obs": "PROMOTOR PEÇAS ABRIL/2026", "tipo": "NOTA FISCAL", "nf": "2872", "emissao": "2026-05-11", "vencimento": "2026-07-10"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 241464.54, "status": "EM ABERTO", "obs": "KITCHENAID 04/2026", "tipo": "NOTA FISCAL", "nf": "2883", "emissao": "2026-05-13", "vencimento": "2026-07-17"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 102083.03, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK N° 296796", "tipo": "NOTA FISCAL", "nf": "2884", "emissao": "2026-05-13", "vencimento": "2026-05-22"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 308568.45, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 296796", "tipo": "NOTA FISCAL", "nf": "2885", "emissao": "2026-05-13", "vencimento": "2026-05-22"}, {"mes": "Maio", "cliente": "KELCO PET CARE", "valor": 157755.05, "status": "EM ABERTO", "obs": "PROMOTORES 04/2026 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2886", "emissao": "2026-05-13", "vencimento": "2026-05-29"}, {"mes": "Maio", "cliente": "KELCO PET CARE", "valor": 308694.68, "status": "EM ABERTO", "obs": "PROMOTORES 04/2026 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2887", "emissao": "2026-05-13", "vencimento": "2026-05-29"}, {"mes": "Maio", "cliente": "KELCO PET CARE", "valor": 13098.35, "status": "EM ABERTO", "obs": "PROMOTORES DESPESAS EXTRAS 04/2026", "tipo": "NOTA FISCAL", "nf": "2888", "emissao": "2026-05-13", "vencimento": "2026-05-29"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 37697.27, "status": "EM ABERTO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2890", "emissao": "2026-05-14", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 29888.82, "status": "EM ABERTO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2891", "emissao": "2026-05-14", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 27262.69, "status": "EM ABERTO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2892", "emissao": "2026-05-14", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 25992.43, "status": "EM ABERTO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2893", "emissao": "2026-05-14", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "EM ABERTO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2901", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 53601.94, "status": "EM ABERTO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2902", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 305082.42, "status": "EM ABERTO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2903", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "EM ABERTO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2904", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 598.6, "status": "EM ABERTO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2905", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 4761.65, "status": "EM ABERTO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2906", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 8746.91, "status": "EM ABERTO", "obs": "LICENÇAS", "tipo": "NOTA FISCAL", "nf": "2907", "emissao": "2026-05-19", "vencimento": "2026-06-25"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 113965.51, "status": "EM ABERTO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK MAIO N° 296796", "tipo": "NOTA FISCAL", "nf": "2909", "emissao": "2026-06-12", "vencimento": "2026-06-12"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 327706.99, "status": "EM ABERTO", "obs": "OPERAÇÃO FOOD TRUCKS MAIO PEDIDO N° 296796", "tipo": "NOTA FISCAL", "nf": "2910", "emissao": "2026-06-12", "vencimento": "2026-06-12"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 748968.41, "status": "EM ABERTO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2911", "emissao": "2026-06-12", "vencimento": "2026-06-12"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 507699.15, "status": "EM ABERTO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2912", "emissao": "2026-06-12", "vencimento": "2026-06-12"}, {"mes": "Maio", "cliente": "TCL SEMP S.A", "valor": 129808.12, "status": "EM ABERTO", "obs": "AGENCIAMENTO DE MÃO DE OBRA VAREJO", "tipo": "NOTA FISCAL", "nf": "2918", "emissao": "2026-05-28", "vencimento": "2026-08-05"}, {"mes": "Maio", "cliente": "TCL SEMP S.A", "valor": 4669.67, "status": "EM ABERTO", "obs": "VIAGEM MARCOS ABRIL 2026", "tipo": "NOTA FISCAL", "nf": "2919", "emissao": "2026-05-28", "vencimento": "2026-08-05"}, {"mes": "Maio", "cliente": "TCL SEMP S.A", "valor": 47025.71, "status": "EM ABERTO", "obs": "AGENCIAMENTO DE MÃO DE OBRA AC ESPECIALIZADO", "tipo": "NOTA FISCAL", "nf": "2920", "emissao": "2026-05-28", "vencimento": "2026-08-05"}, {"mes": "Maio", "cliente": "TCL SEMP S.A", "valor": 1167.45, "status": "EM ABERTO", "obs": "CAFÉ DA MANHÃ MAGALU", "tipo": "NOTA FISCAL", "nf": "2921", "emissao": "2026-05-28", "vencimento": "2026-08-05"}];
+const NOTAS_25    = [{"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 66944.12, "status": "RECEBIDO", "obs": "KITCHENAID 12/2024", "tipo": "NOTA FISCAL", "nf": "2107", "emissao": "2025-01-08", "vencimento": "2025-03-10"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2112", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 63768.17, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2113", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 248629.63, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2114", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2115", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 894.62, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2116", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 734496.0, "status": "RECEBIDO", "obs": "MOBILIÁRIOS AMERICANAS", "tipo": "NOTA FISCAL", "nf": "2117", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 8784.53, "status": "RECEBIDO", "obs": "EXTRA LOGÍSTICA MOBILIÁRIOS AMERICANAS", "tipo": "NOTA FISCAL", "nf": "2118", "emissao": "2025-01-09", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "ROBERT BOSCH LTDA", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2119", "emissao": "2025-01-10", "vencimento": "2025-04-11"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 9590.12, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS DEZEMBRO/2024", "tipo": "NOTA FISCAL", "nf": "2120", "emissao": "2025-01-10", "vencimento": "2025-03-12"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 57217.64, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T1 RIO DE JANEIRO PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2121", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 43440.36, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T2 PARANÁ PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2122", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 48076.05, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T3 SÃO PAULO PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2123", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 49186.04, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T4 MINAS GERAIS PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2124", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 10712.41, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T5 RIO GRANDE DO SUL PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2125", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 51552.77, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T6 DISTRITO FEDERAL PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2126", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 51889.32, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T7 PERNAMBUCO PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2127", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 38547.62, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T8 MATO GROSSO PEDIDO N° 270848", "tipo": "NOTA FISCAL", "nf": "2128", "emissao": "2025-01-10", "vencimento": "2025-02-07"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 409066.26, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2131", "emissao": "2025-01-14", "vencimento": "2025-02-14"}, {"mes": "Janeiro", "cliente": "NISSIN FOODS", "valor": 213804.71, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2132", "emissao": "2025-01-14", "vencimento": "2025-02-14"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 28140.11, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2133", "emissao": "2025-01-25", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 26011.08, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2134", "emissao": "2025-01-25", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "PLAYSTATION", "valor": 24629.23, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2133", "emissao": "2025-01-25", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 338799.87, "status": "RECEBIDO", "obs": "PROMOTORES 12/2024", "tipo": "NOTA FISCAL", "nf": "2144", "emissao": "2025-01-09", "vencimento": "2025-03-10"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 43587.02, "status": "RECEBIDO", "obs": "PROMOTORES CUSTOS EXTRAS 12/2024", "tipo": "NOTA FISCAL", "nf": "2145", "emissao": "2025-01-09", "vencimento": "2025-03-10"}, {"mes": "Janeiro", "cliente": "WHIRLPOOL S.A", "valor": 6540.0, "status": "RECEBIDO", "obs": "THE BOSS BLACK FRIDAY", "tipo": "NOTA FISCAL", "nf": "2146", "emissao": "2025-01-09", "vencimento": "2025-03-10"}, {"mes": "Janeiro", "cliente": "KELCO PET CARE", "valor": 156592.61, "status": "RECEBIDO", "obs": "PROMOTORES 01/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2147", "emissao": "2025-01-29", "vencimento": "2025-02-25"}, {"mes": "Janeiro", "cliente": "KELCO PET CARE", "valor": 208293.44, "status": "RECEBIDO", "obs": "PROMOTORES 01/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2148", "emissao": "2025-01-29", "vencimento": "2025-02-25"}, {"mes": "Fevereiro", "cliente": "ROBERT BOSCH LTDA", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2156", "emissao": "2025-02-10", "vencimento": "2025-05-16"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 15924.35, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2113", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 268139.97, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2114", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2115", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 858.78, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2116", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 19807.72, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2133", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 24236.38, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2134", "emissao": "2025-02-13", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "WHIRLPOOL S.A", "valor": 338799.87, "status": "RECEBIDO", "obs": "PROMOTORES 01/2025", "tipo": "NOTA FISCAL", "nf": "2165", "emissao": "2025-02-14", "vencimento": "2025-04-11"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 26309.47, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2166", "emissao": "2025-02-17", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "WHIRLPOOL S.A", "valor": 9590.12, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS JANEIRO/2025", "tipo": "NOTA FISCAL", "nf": "2168", "emissao": "2025-02-17", "vencimento": "2025-04-18"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 406857.06, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2169", "emissao": "2025-02-18", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 205261.55, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2170", "emissao": "2025-02-18", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "KELCO PET CARE", "valor": 161454.92, "status": "RECEBIDO", "obs": "PROMOTORES 02/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2171", "emissao": "2025-02-18", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "KELCO PET CARE", "valor": 234163.02, "status": "RECEBIDO", "obs": "PROMOTORES 02/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2172", "emissao": "2025-02-18", "vencimento": "2025-02-25"}, {"mes": "Fevereiro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2173", "emissao": "2025-02-18", "vencimento": "2025-03-25"}, {"mes": "Fevereiro", "cliente": "WHIRLPOOL S.A", "valor": 70165.03, "status": "RECEBIDO", "obs": "KITCHENAID 01/2025", "tipo": "NOTA FISCAL", "nf": "2175", "emissao": "2025-02-19", "vencimento": "2025-04-18"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 42445.35, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T1 RIO DE JANEIRO PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2178", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 37176.32, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T2 PARANÁ PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2179", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 66517.01, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T3 SÃO PAULO PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2180", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 45279.46, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T4 MINAS GERAIS PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2181", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 47193.06, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T5 RIO GRANDE DO SUL PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2182", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 53300.36, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T6 DISTRITO FEDERAL PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2183", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 57130.61, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T7 PERNAMBUCO PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2184", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Fevereiro", "cliente": "NISSIN FOODS", "valor": 29112.68, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T8 MATO GROSSO PEDIDO N° 273130", "tipo": "NOTA FISCAL", "nf": "2185", "emissao": "2025-02-25", "vencimento": "2025-03-14"}, {"mes": "Marco", "cliente": "ROBERT BOSCH LTDA", "valor": 24888.5, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2190", "emissao": "2025-03-10", "vencimento": "2025-06-13"}, {"mes": "Marco", "cliente": "WHIRLPOOL S.A", "valor": 92236.83, "status": "RECEBIDO", "obs": "KITCHENAID 02/2025", "tipo": "NOTA FISCAL", "nf": "2191", "emissao": "2025-03-10", "vencimento": "2025-05-16"}, {"mes": "Marco", "cliente": "WHIRLPOOL S.A", "valor": 389222.18, "status": "RECEBIDO", "obs": "PROMOTORES 02/2025", "tipo": "NOTA FISCAL", "nf": "2194", "emissao": "2025-03-12", "vencimento": "2025-05-16"}, {"mes": "Marco", "cliente": "WHIRLPOOL S.A", "valor": 9590.12, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS FEVEREIRO/2025", "tipo": "NOTA FISCAL", "nf": "2195", "emissao": "2025-03-12", "vencimento": "2025-05-16"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2202", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 38817.61, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2203", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 270091.21, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2204", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 88238.99956790124, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2205", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 1914.62, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2206", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 11605.14, "status": "RECEBIDO", "obs": "SPEED SAMS", "tipo": "NOTA FISCAL", "nf": "2207", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 176392.93, "status": "RECEBIDO", "obs": "SPEED AUDITORIA MOBILIARIOS", "tipo": "NOTA FISCAL", "nf": "2208", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 50187.55, "status": "RECEBIDO", "obs": "MOVIMENTAÇÃO MOVEIS AMERICANAS", "tipo": "NOTA FISCAL", "nf": "2209", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 3996.0, "status": "RECEBIDO", "obs": "KIT FERRAMENTAS DE MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2211", "emissao": "2025-03-14", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 24236.38, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2216", "emissao": "2025-03-17", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 32159.29, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2217", "emissao": "2025-03-17", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 20963.62, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2218", "emissao": "2025-03-17", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "KELCO PET CARE", "valor": 227434.89, "status": "RECEBIDO", "obs": "PROMOTORES 03/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2220", "emissao": "2025-03-17", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "KELCO PET CARE", "valor": 163740.1, "status": "RECEBIDO", "obs": "PROMOTORES 03/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2221", "emissao": "2025-03-17", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 8997.0, "status": "RECEBIDO", "obs": "PS5 PRO ANALISE", "tipo": "NOTA FISCAL", "nf": "2228", "emissao": "2025-03-18", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "PLAYSTATION", "valor": 657200.0, "status": "RECEBIDO", "obs": "PROJETO TIM E MANUTENÇÃO AMERICANAS", "tipo": "NOTA FISCAL", "nf": "2239", "emissao": "2025-03-18", "vencimento": "2025-04-25"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 392894.63, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2241", "emissao": "2025-03-21", "vencimento": "2025-04-11"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 149064.84, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2242", "emissao": "2025-03-21", "vencimento": "2025-04-11"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 54677.87, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T1 RIO DE JANEIRO PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2247", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 52306.93, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T2 PARANÁ PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2248", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 59549.6, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T3 SÃO PAULO PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2249", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 38858.54, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T4 MINAS GERAIS PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2250", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 52598.93, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T5 RIO GRANDE DO SUL PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2251", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 46711.8, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T6 DISTRITO FEDERAL PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2252", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 57276.95, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T7 PERNAMBUCO PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2253", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Marco", "cliente": "NISSIN FOODS", "valor": 48555.33, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS / T8 MATO GROSSO PEDIDO N° 274666", "tipo": "NOTA FISCAL", "nf": "2254", "emissao": "2025-03-25", "vencimento": "2025-04-18"}, {"mes": "Abril", "cliente": "WHIRLPOOL S.A", "valor": 359687.1, "status": "RECEBIDO", "obs": "PROMOTORES 03/2025", "tipo": "NOTA FISCAL", "nf": "2257", "emissao": "2025-04-01", "vencimento": "2025-06-05"}, {"mes": "Abril", "cliente": "ROBERT BOSCH LTDA", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2258", "emissao": "2025-04-03", "vencimento": "2025-07-10"}, {"mes": "Abril", "cliente": "WHIRLPOOL S.A", "valor": 67596.54, "status": "RECEBIDO", "obs": "KITCHENAID 03/2025", "tipo": "NOTA FISCAL", "nf": "2259", "emissao": "2025-04-04", "vencimento": "2025-06-06"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 1385.19, "status": "RECEBIDO", "obs": "ORÇAMENTO DEMONSTRADORA RS", "tipo": "NOTA FISCAL", "nf": "2267", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2268", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 44903.94, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2269", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2270", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2271", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 742.42, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2272", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 24561.47, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2273", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 20617.45, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2274", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "PLAYSTATION", "valor": 26577.12, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2275", "emissao": "2025-04-11", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 157136.61, "status": "RECEBIDO", "obs": "PROMOTORES 04/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2276", "emissao": "2025-04-14", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "KELCO PET CARE", "valor": 237335.88, "status": "RECEBIDO", "obs": "PROMOTORES 04/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2277", "emissao": "2025-04-14", "vencimento": "2025-05-26"}, {"mes": "Abril", "cliente": "WHIRLPOOL S.A", "valor": 10965.08, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS MARÇO/2025", "tipo": "NOTA FISCAL", "nf": "2283", "emissao": "2025-04-22", "vencimento": "2025-05-16"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 92400.56, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2286", "emissao": "2025-04-30", "vencimento": "2025-05-23"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 312013.79, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 276584", "tipo": "NOTA FISCAL", "nf": "2287", "emissao": "2025-04-30", "vencimento": "2025-05-23"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 427337.72, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2288", "emissao": "2025-05-02", "vencimento": "2025-05-16"}, {"mes": "Abril", "cliente": "NISSIN FOODS", "valor": 269171.64, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2289", "emissao": "2025-05-02", "vencimento": "2025-05-16"}, {"mes": "Maio", "cliente": "BIMBO DO BRASIL LTDA", "valor": 205161.5, "status": "RECEBIDO", "obs": "BIMBO 12504281359244", "tipo": "NOTA FISCAL", "nf": "2290", "emissao": "2025-05-02", "vencimento": "2025-06-06"}, {"mes": "Maio", "cliente": "BIMBO DO BRASIL LTDA", "valor": 4707.32, "status": "RECEBIDO", "obs": "BIMBO 12504220829133", "tipo": "NOTA FISCAL", "nf": "2291", "emissao": "2025-05-02", "vencimento": "2025-06-06"}, {"mes": "Maio", "cliente": "BIMBO DO BRASIL LTDA", "valor": 3179.14, "status": "RECEBIDO", "obs": "BIMBO 12504171127158", "tipo": "NOTA FISCAL", "nf": "2292", "emissao": "2025-05-02", "vencimento": "2025-06-06"}, {"mes": "Maio", "cliente": "BIMBO DO BRASIL LTDA", "valor": 10030.5, "status": "RECEBIDO", "obs": "BIMBO 12504291134265", "tipo": "NOTA FISCAL", "nf": "2293", "emissao": "2025-05-02", "vencimento": "2025-06-06"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 362461.79, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS 04/2025", "tipo": "NOTA FISCAL", "nf": "2295", "emissao": "2025-05-06", "vencimento": "2025-07-11"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 52557.69, "status": "RECEBIDO", "obs": "LOGÍSTICA MÃES 04/2025", "tipo": "NOTA FISCAL", "nf": "2296", "emissao": "2025-05-06", "vencimento": "2025-07-11"}, {"mes": "Maio", "cliente": "BIMBO DO BRASIL LTDA", "valor": 135072.3, "status": "RECEBIDO", "obs": "BIMBO 12504301425396", "tipo": "NOTA FISCAL", "nf": "2297", "emissao": "2025-05-07", "vencimento": "2025-06-13"}, {"mes": "Maio", "cliente": "ROBERT BOSCH LTDA", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2298", "emissao": "2025-05-07", "vencimento": "2025-08-15"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS ABRIL/2025", "tipo": "NOTA FISCAL", "nf": "2304", "emissao": "2025-05-13", "vencimento": "2025-07-18"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2307", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 29243.62, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2308", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2309", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2310", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 5561.84, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2311", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 26414.58, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2312", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 24398.93, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2313", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "PLAYSTATION", "valor": 20388.23, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2314", "emissao": "2025-05-16", "vencimento": "2025-06-25"}, {"mes": "Maio", "cliente": "KELCO PET CARE", "valor": 165454.84, "status": "RECEBIDO", "obs": "PROMOTORES 05/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2315", "emissao": "2025-05-19", "vencimento": "2025-06-26"}, {"mes": "Maio", "cliente": "KELCO PET CARE", "valor": 234598.39, "status": "RECEBIDO", "obs": "PROMOTORES 05/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2316", "emissao": "2025-05-19", "vencimento": "2025-06-26"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 554432.85, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2317", "emissao": "2025-05-19", "vencimento": "2025-06-13"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 341680.27, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2318", "emissao": "2025-05-19", "vencimento": "2025-06-13"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 88923.72, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2322", "emissao": "2025-05-21", "vencimento": "2025-06-13"}, {"mes": "Maio", "cliente": "NISSIN FOODS", "valor": 300136.22, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2323", "emissao": "2025-05-21", "vencimento": "2025-06-13"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 85157.41, "status": "RECEBIDO", "obs": "KITCHENAID 04/2025", "tipo": "NOTA FISCAL", "nf": "2324", "emissao": "2025-05-22", "vencimento": "2025-07-18"}, {"mes": "Maio", "cliente": "WHIRLPOOL S.A", "valor": 63462.54, "status": "RECEBIDO", "obs": "KITCHENAID 04/2025", "tipo": "NOTA FISCAL", "nf": "2325", "emissao": "2025-05-22", "vencimento": "2025-07-18"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 36235.55, "status": "RECEBIDO", "obs": "BIMBO 12505141121536", "tipo": "NOTA FISCAL", "nf": "2327", "emissao": "2025-06-02", "vencimento": "2025-09-05"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 2258.24, "status": "RECEBIDO", "obs": "BIMBO 12505071305552", "tipo": "NOTA FISCAL", "nf": "2328", "emissao": "2025-06-02", "vencimento": "2025-09-05"}, {"mes": "Junho", "cliente": "ROBERT BOSCH LTDA", "valor": 23598.95, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2334", "emissao": "2025-06-03", "vencimento": "2025-09-05"}, {"mes": "Junho", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS MAIO/2025", "tipo": "NOTA FISCAL", "nf": "2335", "emissao": "2025-06-05", "vencimento": "2025-08-08"}, {"mes": "Junho", "cliente": "WHIRLPOOL S.A", "valor": 359687.1, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS 05/2025", "tipo": "NOTA FISCAL", "nf": "2336", "emissao": "2025-06-05", "vencimento": "2025-08-08"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 13201.76, "status": "RECEBIDO", "obs": "BIMBO 12506031026432 - NOTA FISCAL 2340", "tipo": "NOTA FISCAL", "nf": "2340", "emissao": "2025-06-12", "vencimento": "2025-09-12"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 3862.53, "status": "RECEBIDO", "obs": "BIMBO 12505281246330 - NOTA FISCAL 2341", "tipo": "NOTA FISCAL", "nf": "2341", "emissao": "2025-06-12", "vencimento": "2025-09-12"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 25415.57, "status": "RECEBIDO", "obs": "BIMBO 12505281201365 - NOTA FISCAL 2342", "tipo": "NOTA FISCAL", "nf": "2342", "emissao": "2025-06-12", "vencimento": "2025-09-12"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 25415.57, "status": "RECEBIDO", "obs": "BIMBO 12505281138301 - NOTA FISCAL 2343", "tipo": "NOTA FISCAL", "nf": "2343", "emissao": "2025-06-12", "vencimento": "2025-09-12"}, {"mes": "Junho", "cliente": "WHIRLPOOL S.A", "valor": 14823.46, "status": "RECEBIDO", "obs": "WHP_THE_BOSS - MAIO/2025 - NOTA FISCAL 2344", "tipo": "NOTA FISCAL", "nf": "2344", "emissao": "2025-06-12", "vencimento": "2025-08-15"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 4475.13, "status": "RECEBIDO", "obs": "BIMBO 12506060826137 - NOTA FISCAL 2345", "tipo": "NOTA FISCAL", "nf": "2345", "emissao": "2025-06-13", "vencimento": "2025-09-12"}, {"mes": "Junho", "cliente": "WHIRLPOOL S.A", "valor": 120727.3, "status": "RECEBIDO", "obs": "KITCHENAID 05/2025", "tipo": "NOTA FISCAL", "nf": "2347", "emissao": "2025-06-17", "vencimento": "2025-08-15"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 70180.83, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2349", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 56526.31, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2350", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 58808.95, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2351", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 3239.54, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2352", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 42717.12, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2353", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2354", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2355", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 499.41, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2356", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "PLAYSTATION", "valor": 154333.98, "status": "RECEBIDO", "obs": "SPEED DAYS OF PLAY", "tipo": "NOTA FISCAL", "nf": "2358", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 50896.67, "status": "RECEBIDO", "obs": "BIMBO 12506121422211 - NOTA FISCAL 2359", "tipo": "NOTA FISCAL", "nf": "2359", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 29925.65, "status": "RECEBIDO", "obs": "BIMBO 12506121406560 - NOTA FISCAL 2360", "tipo": "NOTA FISCAL", "nf": "2360", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 35039.36, "status": "RECEBIDO", "obs": "BIMBO 12506031042108 - NOTA FISCAL 2361", "tipo": "NOTA FISCAL", "nf": "2361", "emissao": "2025-06-18", "vencimento": "2025-07-25"}, {"mes": "Junho", "cliente": "NISSIN FOODS", "valor": 92855.82, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2365", "emissao": "2025-06-18", "vencimento": "2025-07-11"}, {"mes": "Junho", "cliente": "NISSIN FOODS", "valor": 297352.84, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2366", "emissao": "2025-06-18", "vencimento": "2025-07-11"}, {"mes": "Junho", "cliente": "NISSIN FOODS", "valor": 557479.32, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2367", "emissao": "2025-06-24", "vencimento": "2025-07-11"}, {"mes": "Junho", "cliente": "NISSIN FOODS", "valor": 353594.44, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2368", "emissao": "2025-06-24", "vencimento": "2025-07-11"}, {"mes": "Julho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 35704.66, "status": "RECEBIDO", "obs": "BIMBO 12505071305552", "tipo": "NOTA FISCAL", "nf": "2371", "emissao": "2025-07-02", "vencimento": "2025-10-03"}, {"mes": "Julho", "cliente": "ROBERT BOSCH LTDA", "valor": 23850.19, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2372", "emissao": "2025-07-02", "vencimento": "2025-10-03"}, {"mes": "Julho", "cliente": "WHIRLPOOL S.A", "valor": 373722.36, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS 06/2025", "tipo": "NOTA FISCAL", "nf": "2373", "emissao": "2025-07-02", "vencimento": "2025-09-05"}, {"mes": "Julho", "cliente": "CALOI NORTE S.A", "valor": 28562.41, "status": "RECEBIDO", "obs": "158 VISITAS PROMOTORES LOJAS MAGAZINE LUIZA", "tipo": "NOTA FISCAL", "nf": "2375", "emissao": "2025-07-04", "vencimento": "2025-08-06"}, {"mes": "Julho", "cliente": "BIMBO DO BRASIL LTDA", "valor": 27243.82, "status": "RECEBIDO", "obs": "BIMBO 12506031146535", "tipo": "NOTA FISCAL", "nf": "2376", "emissao": "2025-07-07", "vencimento": "2025-10-10"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 15427.58, "status": "RECEBIDO", "obs": "INTERNOS (RAFAEL DANTAS)", "tipo": "NOTA FISCAL", "nf": "2379", "emissao": "2025-07-08", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 28862.08, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2380", "emissao": "2025-07-08", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "WHIRLPOOL S.A", "valor": 94066.4, "status": "RECEBIDO", "obs": "KITCHENAID 06/2025", "tipo": "NOTA FISCAL", "nf": "2381", "emissao": "2025-07-08", "vencimento": "2025-09-12"}, {"mes": "Julho", "cliente": "NISSIN FOODS", "valor": 90984.45, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2382", "emissao": "2025-07-10", "vencimento": "2025-08-08"}, {"mes": "Julho", "cliente": "NISSIN FOODS", "valor": 298048.22, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2383", "emissao": "2025-07-10", "vencimento": "2025-08-08"}, {"mes": "Julho", "cliente": "KELCO PET CARE", "valor": 157655.18, "status": "RECEBIDO", "obs": "PROMOTORES 06/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2386", "emissao": "2025-07-10", "vencimento": "2025-08-11"}, {"mes": "Julho", "cliente": "KELCO PET CARE", "valor": 239118.87, "status": "RECEBIDO", "obs": "PROMOTORES 06/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2387", "emissao": "2025-07-10", "vencimento": "2025-08-11"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 30155.01, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2388", "emissao": "2025-07-11", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS JUNHO/2025", "tipo": "NOTA FISCAL", "nf": "2389", "emissao": "2025-07-14", "vencimento": "2025-09-19"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 3448.81, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2390", "emissao": "2025-07-17", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 63868.89, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2391", "emissao": "2025-07-17", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2392", "emissao": "2025-07-17", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2393", "emissao": "2025-07-17", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 844.9, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2394", "emissao": "2025-07-17", "vencimento": "2025-08-25"}, {"mes": "Julho", "cliente": "NISSIN FOODS", "valor": 552156.02, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2396", "emissao": "2025-07-22", "vencimento": "2025-08-08"}, {"mes": "Julho", "cliente": "NISSIN FOODS", "valor": 346437.42, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2397", "emissao": "2025-07-22", "vencimento": "2025-08-08"}, {"mes": "Julho", "cliente": "PLAYSTATION", "valor": 5000.0, "status": "RECEBIDO", "obs": "STORE-IN-STORE PLAYSTATION", "tipo": "NOTA FISCAL", "nf": "2398", "emissao": "2025-07-23", "vencimento": "2025-08-25"}, {"mes": "Agosto", "cliente": "ROBERT BOSCH LTDA", "valor": 23196.84, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2401", "emissao": "2025-08-01", "vencimento": "2025-11-05"}, {"mes": "Agosto", "cliente": "WHIRLPOOL S.A", "valor": 376055.9, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS + CUSTOS COMPLEMENTARES PEDIDO DE COMPRA NR: 4502482500 - 07/2025", "tipo": "NOTA FISCAL", "nf": "2403", "emissao": "2025-08-04", "vencimento": "2025-10-06"}, {"mes": "Agosto", "cliente": "NISSIN FOODS", "valor": 92691.82, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2406", "emissao": "2025-08-11", "vencimento": "2025-09-12"}, {"mes": "Agosto", "cliente": "NISSIN FOODS", "valor": 301104.23, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2407", "emissao": "2025-08-11", "vencimento": "2025-09-12"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 30244.4, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CÉSAR)", "tipo": "NOTA FISCAL", "nf": "2408", "emissao": "2025-08-11", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 23570.82, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2409", "emissao": "2025-08-11", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS JULHO/2025", "tipo": "NOTA FISCAL", "nf": "2410", "emissao": "2025-08-12", "vencimento": "2025-10-17"}, {"mes": "Agosto", "cliente": "WHIRLPOOL S.A", "valor": 7929.23, "status": "RECEBIDO", "obs": "VISITA TÉCNICA RIO CLARO", "tipo": "NOTA FISCAL", "nf": "2411", "emissao": "2025-08-12", "vencimento": "2025-10-17"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 27468.54, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2412", "emissao": "2025-08-14", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2414", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 65135.23, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2415", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2416", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2417", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 769.38, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2418", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "PLAYSTATION", "valor": 40329.01, "status": "RECEBIDO", "obs": "SPEED TIM E SAM'S", "tipo": "NOTA FISCAL", "nf": "2419", "emissao": "2025-08-15", "vencimento": "2025-09-25"}, {"mes": "Agosto", "cliente": "KELCO PET CARE", "valor": 165771.15, "status": "RECEBIDO", "obs": "PROMOTORES 07/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2420", "emissao": "2025-08-15", "vencimento": "2025-08-29"}, {"mes": "Agosto", "cliente": "KELCO PET CARE", "valor": 237451.67, "status": "RECEBIDO", "obs": "PROMOTORES 07/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2421", "emissao": "2025-08-15", "vencimento": "2025-08-29"}, {"mes": "Agosto", "cliente": "WHIRLPOOL S.A", "valor": 143507.0, "status": "RECEBIDO", "obs": "KITCHENAID 07/2025", "tipo": "NOTA FISCAL", "nf": "2422", "emissao": "2025-08-18", "vencimento": "2025-10-24"}, {"mes": "Agosto", "cliente": "NISSIN FOODS", "valor": 586670.32, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2424", "emissao": "2025-08-22", "vencimento": "2025-09-12"}, {"mes": "Agosto", "cliente": "NISSIN FOODS", "valor": 377860.47, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2425", "emissao": "2025-08-22", "vencimento": "2025-09-12"}, {"mes": "Setembro", "cliente": "NISSIN FOODS", "valor": 90748.33, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2444", "emissao": "2025-09-02", "vencimento": "2025-10-10"}, {"mes": "Setembro", "cliente": "NISSIN FOODS", "valor": 298297.1, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2445", "emissao": "2025-09-02", "vencimento": "2025-10-10"}, {"mes": "Setembro", "cliente": "WHIRLPOOL S.A", "valor": 403987.75, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS + CUSTOS COMPLEMENTARES PEDIDO DE COMPRA NR: 4502493666 - 08/2025", "tipo": "NOTA FISCAL", "nf": "2446", "emissao": "2025-09-02", "vencimento": "2025-11-05"}, {"mes": "Setembro", "cliente": "ROBERT BOSCH LTDA", "valor": 23598.95, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2442", "emissao": "2025-09-02", "vencimento": "2025-12-05"}, {"mes": "Setembro", "cliente": "WHIRLPOOL S.A", "valor": 6760.67, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS JULHO/2025", "tipo": "NOTA FISCAL", "nf": "2443", "emissao": "2025-09-02", "vencimento": "2025-11-07"}, {"mes": "Setembro", "cliente": "WHIRLPOOL S.A", "valor": 14609.59, "status": "RECEBIDO", "obs": "PROJETO GELADEIRA CHEIA BEMOL", "tipo": "NOTA FISCAL", "nf": "2453", "emissao": "2025-09-05", "vencimento": "2025-11-05"}, {"mes": "Setembro", "cliente": "WHIRLPOOL S.A", "valor": 111290.56, "status": "RECEBIDO", "obs": "KITCHENAID 08/2025", "tipo": "NOTA FISCAL", "nf": "2455", "emissao": "2025-09-09", "vencimento": "2025-11-14"}, {"mes": "Setembro", "cliente": "TCL SEMP", "valor": 9916.3, "status": "RECEBIDO", "obs": "ATIVAÇÃO FEBRAVA", "tipo": "NOTA FISCAL", "nf": "2456", "emissao": "2025-09-11", "vencimento": "2025-10-05"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 281155.01, "status": "RECEBIDO", "obs": "GAMESTATION", "tipo": "NOTA FISCAL", "nf": "431", "emissao": "2025-09-11", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 38997.75, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CÉSAR)", "tipo": "NOTA FISCAL", "nf": "2457", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 32407.89, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2458", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "KELCO PET CARE", "valor": 145304.22, "status": "RECEBIDO", "obs": "PROMOTORES 08/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2459", "emissao": "2025-09-12", "vencimento": "2025-09-26"}, {"mes": "Setembro", "cliente": "KELCO PET CARE", "valor": 253845.99, "status": "RECEBIDO", "obs": "PROMOTORES 08/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2460", "emissao": "2025-09-12", "vencimento": "2025-09-26"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2461", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 72983.69, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2462", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2463", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2464", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 299.2, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2465", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 41223.18, "status": "RECEBIDO", "obs": "SPEED EAFC 26", "tipo": "NOTA FISCAL", "nf": "2466", "emissao": "2025-09-12", "vencimento": "2025-10-27"}, {"mes": "Setembro", "cliente": "NISSIN FOODS", "valor": 559149.1453376564, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2480", "emissao": "2025-09-23", "vencimento": "2025-10-10"}, {"mes": "Setembro", "cliente": "NISSIN FOODS", "valor": 379037.96795555553, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2479", "emissao": "2025-09-23", "vencimento": "2025-10-10"}, {"mes": "Setembro", "cliente": "PLAYSTATION", "valor": 27468.54, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2482", "emissao": "2025-09-24", "vencimento": "2025-10-27"}, {"mes": "Outubro", "cliente": "WHIRLPOOL S.A", "valor": 376055.9, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS + CUSTOS COMPLEMENTARES PEDIDO DE COMPRA NR: 4502500799 - 09/2025", "tipo": "NOTA FISCAL", "nf": "2497", "emissao": "2025-10-02", "vencimento": "2025-12-05"}, {"mes": "Outubro", "cliente": "WHIRLPOOL S.A", "valor": 10048.44, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS SETEMBRO/2025", "tipo": "NOTA FISCAL", "nf": "2501", "emissao": "2025-10-06", "vencimento": "2025-12-12"}, {"mes": "Outubro", "cliente": "ROBERT BOSCH", "valor": 24682.66, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2505", "emissao": "2025-10-07", "vencimento": "2026-01-05"}, {"mes": "Outubro", "cliente": "KELCO PET CARE", "valor": 134615.29, "status": "RECEBIDO", "obs": "PROMOTORES 09/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2507", "emissao": "2025-10-08", "vencimento": "2025-10-27"}, {"mes": "Outubro", "cliente": "KELCO PET CARE", "valor": 270644.48, "status": "RECEBIDO", "obs": "PROMOTORES 09/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2508", "emissao": "2025-10-08", "vencimento": "2025-10-27"}, {"mes": "Outubro", "cliente": "WHIRLPOOL S.A", "valor": 715.38, "status": "RECEBIDO", "obs": "PROJETO GELADEIRA CHEIA BEMOL", "tipo": "NOTA FISCAL", "nf": "2510", "emissao": "2025-10-08", "vencimento": "2025-12-12"}, {"mes": "Outubro", "cliente": "NISSIN FOODS", "valor": 92845.72, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2511", "emissao": "2025-10-08", "vencimento": "2025-11-07"}, {"mes": "Outubro", "cliente": "NISSIN FOODS", "valor": 298616.66, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2512", "emissao": "2025-10-08", "vencimento": "2025-11-07"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2514", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 60022.79, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2515", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2516", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2517", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 216.71, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2518", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 60819.57, "status": "RECEBIDO", "obs": "SPEED GOY", "tipo": "NOTA FISCAL", "nf": "2519", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 196977.07, "status": "RECEBIDO", "obs": "MANUTENÇÃO MOBILIÁRIOS", "tipo": "NOTA FISCAL", "nf": "2520", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 71488.56, "status": "RECEBIDO", "obs": "22 TVS SAMSUNG", "tipo": "NOTA FISCAL", "nf": "438", "emissao": "2025-10-09", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 2573.63, "status": "RECEBIDO", "obs": "BGS", "tipo": "NOTA FISCAL", "nf": "2522", "emissao": "2025-10-10", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 28606.36, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2523", "emissao": "2025-10-13", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 37099.74, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CÉSAR)", "tipo": "NOTA FISCAL", "nf": "2524", "emissao": "2025-10-13", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "PLAYSTATION", "valor": 23218.2, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2525", "emissao": "2025-10-13", "vencimento": "2025-11-25"}, {"mes": "Outubro", "cliente": "WHIRLPOOL S.A", "valor": 104822.71, "status": "RECEBIDO", "obs": "KITCHENAID 09/2025", "tipo": "NOTA FISCAL", "nf": "2530", "emissao": "2025-10-15", "vencimento": "2025-12-19"}, {"mes": "Outubro", "cliente": "WHIRLPOOL S.A", "valor": 177963.59, "status": "RECEBIDO", "obs": "PROMOTORES + EXTRAS PEDIDO DE COMPRA NR: 4502501511 - 09/2025", "tipo": "NOTA FISCAL", "nf": "2534", "emissao": "2025-10-22", "vencimento": "2025-12-05"}, {"mes": "Outubro", "cliente": "NISSIN FOODS", "valor": 582863.73, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2535", "emissao": "2025-10-22", "vencimento": "2025-12-05"}, {"mes": "Outubro", "cliente": "NISSIN FOODS", "valor": 383818.55, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2536", "emissao": "2025-10-22", "vencimento": "2025-12-05"}, {"mes": "Novembro", "cliente": "ROBERT BOSCH", "valor": 22532.75, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2542", "emissao": "2025-11-05", "vencimento": "2026-02-05"}, {"mes": "Novembro", "cliente": "MINERVA S.A", "valor": 11769.15, "status": "RECEBIDO", "obs": "AÇÕES OUTUBRO/2025", "tipo": "NOTA FISCAL", "nf": "2543", "emissao": "2025-11-06", "vencimento": "2025-12-05"}, {"mes": "Novembro", "cliente": "NISSIN FOODS", "valor": 91854.6, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2550", "emissao": "2025-11-07", "vencimento": "2025-12-12"}, {"mes": "Novembro", "cliente": "NISSIN FOODS", "valor": 302581.67, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2551", "emissao": "2025-11-07", "vencimento": "2025-12-12"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 30654.42, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2554", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 39048.93, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CÉSAR)", "tipo": "NOTA FISCAL", "nf": "2555", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 25269.14, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2556", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2557", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 61164.77, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2558", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2559", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 88238.99956790124, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2560", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 952.58, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2561", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 7395.87, "status": "RECEBIDO", "obs": "EQUIPAMENTOS PS5 E PEN DRIVE", "tipo": "NOTA FISCAL", "nf": "2562", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 229466.66666666666, "status": "RECEBIDO", "obs": "KABUM FLAGSHIP", "tipo": "NOTA FISCAL", "nf": "2563", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 146428.6172839506, "status": "RECEBIDO", "obs": "LOJA TIM OSCAR FREIRE", "tipo": "NOTA FISCAL", "nf": "2564", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 6062.58, "status": "RECEBIDO", "obs": "SEGURANÇA TIM", "tipo": "NOTA FISCAL", "nf": "2565", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 2037.04, "status": "RECEBIDO", "obs": "FOLDER GY", "tipo": "NOTA FISCAL", "nf": "2566", "emissao": "2025-11-12", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 16643.14, "status": "RECEBIDO", "obs": "MESA PLAYSTATION - NOTA DE VENDA OLÉ EVENTOS", "tipo": "NOTA FISCAL", "nf": "445", "emissao": "2025-11-13", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "PLAYSTATION", "valor": 17569.06, "status": "RECEBIDO", "obs": "MESA PLAYSTATION - NOTA DE VENDA OLÉ EVENTOS", "tipo": "NOTA FISCAL", "nf": "447", "emissao": "2025-11-13", "vencimento": "2025-12-26"}, {"mes": "Novembro", "cliente": "WHIRLPOOL S.A", "valor": 4700.8, "status": "RECEBIDO", "obs": "PROJETO ALIMENTOS DE VERDADE FAST SHOP", "tipo": "NOTA FISCAL", "nf": "2572", "emissao": "2025-11-13", "vencimento": "2026-01-05"}, {"mes": "Novembro", "cliente": "KELCO PET CARE", "valor": 138600.93, "status": "RECEBIDO", "obs": "PROMOTORES 10/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2576", "emissao": "2025-11-14", "vencimento": "2025-11-28"}, {"mes": "Novembro", "cliente": "KELCO PET CARE", "valor": 278026.56, "status": "RECEBIDO", "obs": "PROMOTORES 10/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2577", "emissao": "2025-11-14", "vencimento": "2025-11-28"}, {"mes": "Novembro", "cliente": "WHIRLPOOL S.A", "valor": 7637.41, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS OUTUBRO/2025", "tipo": "NOTA FISCAL", "nf": "2579", "emissao": "2025-11-18", "vencimento": "2026-01-23"}, {"mes": "Novembro", "cliente": "NISSIN FOODS", "valor": 594569.59, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2582", "emissao": "2025-11-24", "vencimento": "2025-12-12"}, {"mes": "Novembro", "cliente": "NISSIN FOODS", "valor": 397014.11, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2583", "emissao": "2025-11-24", "vencimento": "2025-12-12"}, {"mes": "Novembro", "cliente": "WHIRLPOOL S.A", "valor": 247882.45, "status": "RECEBIDO", "obs": "KITCHENAID 10/2025", "tipo": "NOTA FISCAL", "nf": "2585", "emissao": "2025-11-25", "vencimento": "2026-01-30"}, {"mes": "Novembro", "cliente": "MINERVA S.A", "valor": 49314.78, "status": "RECEBIDO", "obs": "AÇÕES NOVEMBRO/2025", "tipo": "NOTA FISCAL", "nf": "2586", "emissao": "2025-11-27", "vencimento": "2025-12-29"}, {"mes": "Dezembro", "cliente": "ROBERT BOSCH", "valor": 23057.1, "status": "RECEBIDO", "obs": "LOCAÇÃO MENSAL DE APARELHOS SMARTPHONES", "tipo": "NOTA FISCAL", "nf": "2588", "emissao": "2025-12-02", "vencimento": "2026-03-06"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 443.67, "status": "RECEBIDO", "obs": "CRACHÁS", "tipo": "NOTA FISCAL", "nf": "2592", "emissao": "2025-12-03", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 27016.93, "status": "RECEBIDO", "obs": "INTERNOS (LUCA SOUZA)", "tipo": "NOTA FISCAL", "nf": "2596", "emissao": "2025-12-08", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 34855.01, "status": "RECEBIDO", "obs": "INTERNOS (DOUGLAS CESAR)", "tipo": "NOTA FISCAL", "nf": "2597", "emissao": "2025-12-08", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 22919.03, "status": "RECEBIDO", "obs": "INTERNOS (JACQUES)", "tipo": "NOTA FISCAL", "nf": "2598", "emissao": "2025-12-08", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 28624.45, "status": "RECEBIDO", "obs": "INTERNOS (ISIS)", "tipo": "NOTA FISCAL", "nf": "2599", "emissao": "2025-12-08", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "WHIRLPOOL S.A", "valor": 5007.2, "status": "RECEBIDO", "obs": "PROMOTOR PEÇAS NOVEMBRO/2025", "tipo": "NOTA FISCAL", "nf": "2600", "emissao": "2025-12-08", "vencimento": "2026-02-13"}, {"mes": "Dezembro", "cliente": "NISSIN FOODS", "valor": 85403.04, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES TRUCK", "tipo": "NOTA FISCAL", "nf": "2605", "emissao": "2025-12-11", "vencimento": "2026-01-16"}, {"mes": "Dezembro", "cliente": "NISSIN FOODS", "valor": 311252.64, "status": "RECEBIDO", "obs": "OPERAÇÃO FOOD TRUCKS PEDIDO N° 277358", "tipo": "NOTA FISCAL", "nf": "2606", "emissao": "2025-12-11", "vencimento": "2026-01-16"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 2928.67, "status": "RECEBIDO", "obs": "UNIVERSIDADE", "tipo": "NOTA FISCAL", "nf": "2607", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 61073.69, "status": "RECEBIDO", "obs": "LOGÍSTICA", "tipo": "NOTA FISCAL", "nf": "2608", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 289202.06, "status": "RECEBIDO", "obs": "TRADE MERCHANDISING", "tipo": "NOTA FISCAL", "nf": "2609", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 88239.0, "status": "RECEBIDO", "obs": "TRADE ONLINE", "tipo": "NOTA FISCAL", "nf": "2610", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 1314.24, "status": "RECEBIDO", "obs": "MANUTENÇÃO", "tipo": "NOTA FISCAL", "nf": "2611", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 4188.22, "status": "RECEBIDO", "obs": "EQUIPAMENTOS PEN DRIVE", "tipo": "NOTA FISCAL", "nf": "2612", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 1392.14, "status": "RECEBIDO", "obs": "ATIVAÇÕES GERAIS", "tipo": "NOTA FISCAL", "nf": "2613", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 1645367.58, "status": "RECEBIDO", "obs": "SPEED BLACK FRIDAY 2025", "tipo": "NOTA FISCAL", "nf": "2614", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "PLAYSTATION", "valor": 981706.44, "status": "RECEBIDO", "obs": "SPEED NATAL 2025", "tipo": "NOTA FISCAL", "nf": "2615", "emissao": "2025-12-11", "vencimento": "2026-01-26"}, {"mes": "Dezembro", "cliente": "NISSIN FOODS", "valor": 602894.42, "status": "RECEBIDO", "obs": "AGENCIAMENTO MÃO DE OBRA PROMOTORES COM MOTO", "tipo": "NOTA FISCAL", "nf": "2618", "emissao": "2025-12-15", "vencimento": "2026-01-16"}, {"mes": "Dezembro", "cliente": "NISSIN FOODS", "valor": 391725.29, "status": "RECEBIDO", "obs": "OPERAÇÃO PROMOTORES COM MOTO + EXTRAS", "tipo": "NOTA FISCAL", "nf": "2619", "emissao": "2025-12-15", "vencimento": "2026-01-16"}, {"mes": "Dezembro", "cliente": "WHIRLPOOL S.A", "valor": 167755.98, "status": "RECEBIDO", "obs": "KITCHENAID 11/2025", "tipo": "NOTA FISCAL", "nf": "2636", "emissao": "2025-12-17", "vencimento": "2026-02-20"}, {"mes": "Dezembro", "cliente": "MINERVA S.A", "valor": 105273.43, "status": "RECEBIDO", "obs": "AÇÕES DEZEMBRO/2025", "tipo": "NOTA FISCAL", "nf": "2642", "emissao": "2025-12-19", "vencimento": "2026-01-23"}, {"mes": "Dezembro", "cliente": "MINERVA S.A", "valor": 12116.05, "status": "RECEBIDO", "obs": "REPOSITOR GPA RIVIERA", "tipo": "NOTA FISCAL", "nf": "2643", "emissao": "2025-12-19", "vencimento": "2026-01-23"}, {"mes": "Dezembro", "cliente": "KELCO PET CARE", "valor": 135172.53, "status": "RECEBIDO", "obs": "PROMOTORES 11/2025 - PRIMEIRA FASE", "tipo": "NOTA FISCAL", "nf": "2650", "emissao": "2025-12-23", "vencimento": "2025-12-29"}, {"mes": "Dezembro", "cliente": "KELCO PET CARE", "valor": 283044.99, "status": "RECEBIDO", "obs": "PROMOTORES 11/2025 - PROJETO EXPANSÃO", "tipo": "NOTA FISCAL", "nf": "2651", "emissao": "2025-12-23", "vencimento": "2025-12-29"}, {"mes": "Dezembro", "cliente": "LACTALIS", "valor": 109900.54, "status": "RECEBIDO", "obs": "PLANO VERÃO PARMALAT FIT 2026", "tipo": "NOTA FISCAL", "nf": "2652", "emissao": "2025-12-26", "vencimento": "2026-02-27"}];
+let NOTAS         = NOTAS_26;
+let anoNotasAtivo = 2026;
+
+const fmtR  = v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+const fmtK  = v=>v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'R$ 0,00';
+const fmtMs = v=>v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+const fmtFull = v=>v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—';
+
+// ── NAV ──
+function trocarView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  event.target.classList.add('on');
+}
+
+// ── VISÃO GERAL ──
+// Bar mensal 2026
+new Chart(document.getElementById('barMes'),{type:'bar',
+  data:{labels:LABELS_26,datasets:[{data:VALS_26,
+    backgroundColor:VALS_26.map((_,i)=>i===VALS_26.indexOf(Math.max(...VALS_26))?Y:'rgba(247,198,0,0.38)'),
+    borderColor:Y,borderWidth:1.5,borderRadius:8,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>fmtK(c.raw)}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+});
+
+// Donut status
+new Chart(document.getElementById('donut'),{type:'doughnut',
+  data:{labels:['Recebido','Em Aberto'],datasets:[{data:[RECEBIDO,EM_ABERTO],
+    backgroundColor:[GREEN,Y],borderColor:'#FFF',borderWidth:3,hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'66%',
+    plugins:{legend:{position:'bottom',labels:{color:B,padding:16,font:{size:13,weight:'700'}}},
+      tooltip:{...TT,callbacks:{label:c=>fmtK(c.raw)+' ('+(c.raw/TOTAL_26*100).toFixed(1)+'%)'}}}}
+});
+
+// Ranking clientes
+const topCli = Object.entries(CLI_26).map(([n,mv])=>([n,Object.values(mv).reduce((a,v)=>a+v,0)])).sort((a,b)=>b[1]-a[1]);
+const maxCli = topCli[0]?.[1]||1;
+const pList  = document.getElementById('progCli');
+topCli.forEach(([n,v])=>{
+  pList.innerHTML+=`<div><div class="prog-labels"><span class="lbl">${n}</span><span class="val">${fmtK(v)}</span></div><div class="prog-track"><div class="prog-fill" style="width:${(v/maxCli*100).toFixed(0)}%"></div></div></div>`;
+});
+
+// Line acumulada 2026
+const acum26=VALS_26.reduce((a,v,i)=>{a.push((a[i-1]||0)+v);return a;},[]);
+new Chart(document.getElementById('lineAcum'),{type:'line',
+  data:{labels:LABELS_26,datasets:[{data:acum26,borderColor:Y,backgroundColor:'rgba(247,198,0,0.08)',
+    borderWidth:3,pointBackgroundColor:Y,pointBorderColor:B,pointBorderWidth:2,pointRadius:5,fill:true,tension:0.4}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>fmtK(c.raw)}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+});
+
+// ── COMPARATIVO ──
+new Chart(document.getElementById('barComp'),{type:'bar',
+  data:{labels:LABELS_C,datasets:[
+    {label:'2025',data:VALS_25C,backgroundColor:'rgba(200,200,200,0.7)',borderColor:GRAY,borderWidth:1.5,borderRadius:6,borderSkipped:false},
+    {label:'2026',data:VALS_26C,backgroundColor:'rgba(247,198,0,0.85)',borderColor:Y,borderWidth:1.5,borderRadius:6,borderSkipped:false},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{color:B,font:{size:12,weight:'700'},padding:16}},
+      tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+});
+
+new Chart(document.getElementById('barVar'),{type:'bar',
+  data:{labels:LABELS_C,datasets:[{label:'Var %',data:VAR_PCT,
+    backgroundColor:VAR_PCT.map(v=>v>=0?'rgba(247,198,0,0.85)':'rgba(224,59,59,0.75)'),
+    borderColor:VAR_PCT.map(v=>v>=0?Y:RED),borderWidth:1.5,borderRadius:6,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>(c.raw>0?'+':'')+c.raw.toFixed(1)+'%'}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>v+'%'}}}}
+});
+
+new Chart(document.getElementById('lineComp'),{type:'line',
+  data:{labels:LABELS_C,datasets:[
+    {label:'2025',data:ACUM_25C,borderColor:GRAY,backgroundColor:'rgba(200,200,200,0.05)',borderWidth:2.5,borderDash:[6,4],pointBackgroundColor:GRAY,pointBorderColor:B,pointBorderWidth:2,pointRadius:5,fill:false,tension:0.4},
+    {label:'2026',data:ACUM_26C,borderColor:Y,backgroundColor:'rgba(247,198,0,0.08)',borderWidth:3,pointBackgroundColor:Y,pointBorderColor:B,pointBorderWidth:2,pointRadius:6,fill:true,tension:0.4},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{color:B,font:{size:12,weight:'700'},padding:16}},
+      tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+});
+
+new Chart(document.getElementById('radar'),{type:'radar',
+  data:{labels:LABELS_C,datasets:[
+    {label:'2025',data:VALS_25C,borderColor:GRAY,backgroundColor:'rgba(200,200,200,0.15)',borderWidth:2,pointBackgroundColor:GRAY,pointRadius:4},
+    {label:'2026',data:VALS_26C,borderColor:Y,backgroundColor:'rgba(247,198,0,0.18)',borderWidth:3,pointBackgroundColor:Y,pointRadius:5},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{color:B,font:{size:12,weight:'700'},padding:16}},
+      tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+    scales:{r:{grid:{color:'#E2E4E8'},angleLines:{color:'#E2E4E8'},
+      ticks:{color:MUTED,backdropColor:'transparent',callback:v=>'R$ '+(v/1e6).toFixed(0)+'Mi'},
+      pointLabels:{color:B,font:{size:12,weight:'700'}}}}}
+});
+
+// Tabela comparativa
+const maxComp=Math.max(...VALS_26C);
+document.getElementById('compBody').innerHTML=MESES_C.map((m,i)=>{
+  const up=VALS_26C[i]>=VALS_25C[i];
+  const w26=(VALS_26C[i]/maxComp*120).toFixed(0), w25=(VALS_25C[i]/maxComp*120).toFixed(0);
+  return`<tr>
+    <td style="font-weight:700">${LABELS_C[i]}</td>
+    <td class="num" style="color:var(--muted)">${fmtR(VALS_25C[i])}</td>
+    <td class="num" style="color:#8a6200">${fmtR(VALS_26C[i])}</td>
+    <td class="num ${up?'up':'down'}">${up?'+':'-'} ${fmtR(Math.abs(VALS_26C[i]-VALS_25C[i]))}</td>
+    <td class="num" style="font-weight:800" class="${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(VAR_PCT[i]).toFixed(1)}%</td>
+    <td><div class="mini-bar-wrap"><div class="mini-bar bar26" style="width:${w26}px"></div><div class="mini-bar bar25" style="width:${w25}px"></div></div></td>
+  </tr>`;
+}).join('')+`<tr style="background:rgba(247,198,0,0.06);border-top:2px solid ${Y}">
+  <td style="font-weight:900;color:#8a6200">TOTAL</td>
+  <td class="num" style="font-weight:900;color:var(--muted)">${fmtR(VALS_25C.reduce((a,v)=>a+v,0))}</td>
+  <td class="num" style="font-weight:900;color:#8a6200">${fmtR(VALS_26C.reduce((a,v)=>a+v,0))}</td>
+  <td class="num up" style="font-weight:900">+ ${fmtR(VALS_26C.reduce((a,v)=>a+v,0)-VALS_25C.reduce((a,v)=>a+v,0))}</td>
+  <td class="num up" style="font-size:15px;font-weight:900">▲ ${Math.abs(((VALS_26C.reduce((a,v)=>a+v,0)-VALS_25C.reduce((a,v)=>a+v,0))/VALS_25C.reduce((a,v)=>a+v,0))*100).toFixed(1)}%</td>
+  <td></td></tr>`;
+
+// Bar 2025 full
+new Chart(document.getElementById('bar25full'),{type:'bar',
+  data:{labels:LABELS_25,datasets:[{data:VALS_25,
+    backgroundColor:VALS_25.map((_,i)=>i<MESES_C.length?'rgba(40,40,40,0.55)':'rgba(40,40,40,0.2)'),
+    borderColor:B,borderWidth:1.5,borderRadius:6,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>fmtK(c.raw)}}},
+    scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+             y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+});
+
+// ── POR CLIENTE ──
+const DB={
+  '2026':{meses:MESES_26,labels:LABELS_26,clientes:CLI_26},
+  '2025':{meses:MESES_25,labels:LABELS_25,clientes:CLI_25},
+};
+let anoAtivo='2026', viewAtiva='tabela', stackedChart=null;
+
+function renderClientes(){
+  const d=DB[anoAtivo], MESES=d.meses, LABELS=d.labels;
+  const CLIS=Object.keys(d.clientes).filter(c=>MESES.reduce((a,m)=>a+(d.clientes[c][m]||0),0)>0).sort((a,b)=>MESES.reduce((s,m)=>s+(d.clientes[b][m]||0),0)-MESES.reduce((s,m)=>s+(d.clientes[a][m]||0),0));
+  const cliTot={};CLIS.forEach(c=>{cliTot[c]=MESES.reduce((a,m)=>a+(d.clientes[c][m]||0),0);});
+  const grand=Object.values(cliTot).reduce((a,v)=>a+v,0);
+  const mesTot=MESES.map(m=>CLIS.reduce((a,c)=>a+(d.clientes[c][m]||0),0));
+  document.getElementById('cliSubtitle').textContent=`Faturamento por cliente · ${anoAtivo} · ${LABELS[0]} a ${LABELS[LABELS.length-1]}`;
+  // thead
+  document.getElementById('cliThead').innerHTML=`<th>Cliente</th>`+LABELS.map(l=>`<th class="num">${l}</th>`).join('')+`<th class="num">Total ${anoAtivo}</th><th class="num">Part. %</th>`;
+  // tbody
+  document.getElementById('cliTbody').innerHTML=CLIS.map((c,i)=>`<tr style="${i===0?'background:rgba(247,198,0,0.06);':''}">
+    <td style="font-weight:700">${c}</td>
+    ${MESES.map(m=>`<td class="num">${fmtFull(d.clientes[c][m]||0)}</td>`).join('')}
+    <td class="num total-col">${fmtFull(cliTot[c])}</td>
+    <td class="num"><span class="share-pill">${(cliTot[c]/grand*100).toFixed(1)}%</span></td>
+  </tr>`).join('');
+  // tfoot
+  document.getElementById('cliTfoot').innerHTML=`<tr><td style="font-weight:900">TOTAL</td>${mesTot.map(t=>`<td class="num">${fmtFull(t)}</td>`).join('')}<td class="num" style="color:#8a6200">${fmtFull(grand)}</td><td class="num"><span class="share-pill">100%</span></td></tr>`;
+  // cards
+  const cols=Math.min(MESES.length,6);
+  const grid=document.getElementById('cliCards');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  grid.innerHTML='';
+  MESES.forEach((m,mi)=>{
+    const entries=CLIS.map(c=>([c,d.clientes[c][m]||0])).filter(x=>x[1]>0);
+    const mesTotal=entries.reduce((a,x)=>a+x[1],0), maxV=entries[0]?.[1]||1;
+    grid.innerHTML+=`<div class="cli-mes-card"><div class="cli-mes-label">${LABELS[mi]}</div><div class="cli-mes-total">${fmtMs(mesTotal)}</div>${entries.map(([c,v])=>`<div class="cli-bar-item"><div class="cli-bar-label"><span class="cname">${c}</span><span class="cval">${fmtMs(v)}</span></div><div class="cli-bar-track"><div class="cli-bar-fill" style="width:${(v/maxV*100).toFixed(0)}%"></div></div></div>`).join('')}</div>`;
+  });
+  // stacked
+  if(stackedChart){stackedChart.destroy();stackedChart=null;}
+  if(viewAtiva==='grafico') buildStacked(d,CLIS,MESES,LABELS);
+}
+
+function buildStacked(d,CLIS,MESES,LABELS){
+  if(stackedChart) return;
+  stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
+    data:{labels:LABELS,datasets:CLIS.map((c,i)=>([{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderRadius:i===CLIS.length-1?6:0,borderSkipped:false}]))[0]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:B,font:{size:11,weight:'600'},padding:12,boxWidth:12}},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+      scales:{x:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},y:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+  });
+  // rebuild properly with all datasets
+  stackedChart.destroy();stackedChart=null;
+  stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
+    data:{labels:LABELS,datasets:CLIS.map((c,i)=>([{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderRadius:0,borderSkipped:false}]))[0]},
+    options:{responsive:true,maintainAspectRatio:false}
+  });
+  stackedChart.destroy();stackedChart=null;
+  stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
+    data:{labels:LABELS,
+      datasets:CLIS.map((c,i)=>{return{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderSkipped:false};})
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:B,font:{size:11,weight:'600'},padding:10,boxWidth:12}},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+      scales:{x:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},y:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+  });
+}
+
+function setAno(el,ano){document.querySelectorAll('#anoTabs .ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');anoAtivo=ano;renderClientes();}
+function cliView(el,view){document.querySelectorAll('#viewTabs .ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');viewAtiva=view;document.getElementById('vTabela').style.display=view==='tabela'?'':'none';document.getElementById('vCards').style.display=view==='cards'?'':'none';document.getElementById('vGrafico').style.display=view==='grafico'?'':'none';if(view==='grafico'){const d=DB[anoAtivo];const CLIS=Object.keys(d.clientes).filter(c=>d.meses.reduce((a,m)=>a+(d.clientes[c][m]||0),0)>0).sort((a,b)=>d.meses.reduce((s,m)=>s+(d.clientes[b][m]||0),0)-d.meses.reduce((s,m)=>s+(d.clientes[a][m]||0),0));buildStacked(d,CLIS,d.meses,d.labels);}}
+
+renderClientes();
+
+// ── NOTAS EMITIDAS ──
+function setAnoNotas(el,ano){
+  document.querySelectorAll('#anoNotasTabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  anoNotasAtivo=ano;
+  NOTAS=ano===2026?NOTAS_26:NOTAS_25;
+  document.getElementById('mesesTabs26').style.display=ano===2026?'':'none';
+  document.getElementById('mesesTabs25').style.display=ano===2025?'':'none';
+  const primeiroTab=document.querySelector('#notasTabs .ftab');
+  filterNotas(primeiroTab,'Todos');
+}
+
+function filterNotas(el,mes){
+  document.querySelectorAll('#notasTabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  const rows=mes==='Todos'?NOTAS:NOTAS.filter(r=>r.mes===mes);
+  document.getElementById('notasBody').innerHTML=rows.map(r=>{
+    const sc=r.status.includes('RECEB')?'sp-rec':'sp-open';
+    const ven=r.vencimento?r.vencimento.split('-').reverse().join('/'):'—';
+    const hoje=new Date();hoje.setHours(0,0,0,0);
+    const vencDt=r.vencimento?new Date(r.vencimento):null;
+    const vencido=vencDt&&vencDt<hoje&&r.status.includes('ABERTO');
+    const statusHtml=vencido
+      ?`<span class="sp sp-venc">⚠️ VENCIDO</span>`
+      :`<span class="sp ${sc}">${r.status}</span>`;
+    const rowBg=vencido?'background:rgba(239,68,68,0.04);':'';
+    return`<tr style="${rowBg}"><td>${r.mes}</td><td class="td-dim">${r.nf}</td><td style="font-weight:700">${r.cliente}</td><td class="td-dim">${r.obs}</td><td class="td-dim">${r.tipo}</td><td class="num td-val">${fmtR(r.valor)}</td><td class="td-dim" style="${vencido?'color:#EF4444;font-weight:700;':''}">${ven}</td><td>${statusHtml}</td></tr>`;
+  }).join('');
+  const total=rows.reduce((a,r)=>a+r.valor,0);
+  const qtd=rows.length;
+  document.getElementById('notasFoot').innerHTML='<tr><td colspan="5" style="font-weight:900;font-size:13px;padding:12px 14px;">TOTAL — '+qtd+' nota'+(qtd!==1?'s':'')+'</td><td class="num" style="font-weight:900;font-size:15px;color:#8a6200;padding:12px 14px;">'+fmtR(total)+'</td><td></td></tr>';
+}
+filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
+
+function imprimirNotas(){
+  var mes=document.querySelector('#notasTabs .ftab.on')?document.querySelector('#notasTabs .ftab.on').textContent:'Todos';
+  var rows=mes==='Todos'?NOTAS:NOTAS.filter(function(r){return r.mes===mes;});
+  var total=rows.reduce(function(a,r){return a+r.valor;},0);
+  var totalFmt='R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  var linhas='';
+  rows.forEach(function(r){
+    var bg=rows.indexOf(r)%2===0?'#fff':'#fafafa';
+    var ven=r.vencimento?r.vencimento.split('-').reverse().join('/'):'—';
+    linhas+='<tr style="background:'+bg+'"><td>'+r.mes+'</td><td>'+r.nf+'</td><td><b>'+r.cliente+'</b></td><td>'+r.obs+'</td><td>'+r.tipo+'</td><td style="text-align:right">'+fmtR(r.valor)+'</td><td>'+ven+'</td><td>'+r.status+'</td></tr>';
+  });
+  var css='body{font-family:Arial,sans-serif;font-size:11px;color:#222;margin:24px;}';
+  css+='h2{font-size:16px;margin-bottom:2px;}p{font-size:11px;color:#777;margin-bottom:12px;}';
+  css+='table{width:100%;border-collapse:collapse;}';
+  css+='th{background:#282828;color:#F7C600;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;}';
+  css+='td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top;}';
+  css+='.total-row{background:#FFFBEA;font-weight:bold;border-top:2px solid #F7C600;}';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">';
+  html+='<title>ontrade Notas 2026 '+mes+'</title>';
+  html+='<style>'+css+'</style></head><body>';
+  html+='<h2>ontrade &middot; Notas Emitidas 2026 &middot; '+mes+'</h2>';
+  html+='<p>Gerado em '+new Date().toLocaleDateString('pt-BR')+' &middot; '+rows.length+' notas</p>';
+  html+='<table><thead><tr><th>M&#234;s</th><th>NF</th><th>Cliente</th><th>Observa&#231;&#227;o</th><th>Tipo</th><th>Valor (R$)</th><th>Vencimento</th><th>Status</th></tr></thead>';
+  html+='<tbody>'+linhas+'</tbody>';
+  html+='<tfoot><tr class="total-row"><td colspan="5"><b>TOTAL &mdash; '+rows.length+' notas</b></td><td style="text-align:right"><b>'+totalFmt+'</b></td><td></td></tr></tfoot>';
+  html+='</table></body></html>';
+  var win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload=function(){win.print();};
+}
+
+function exportarExcel(){
+  const mesSelecionado=document.querySelector('#notasTabs .ftab.on')?.textContent||'Todos';
+  const rows=mesSelecionado==='Todos'?NOTAS:NOTAS.filter(r=>r.mes===mesSelecionado);
+  const total=rows.reduce((a,r)=>a+r.valor,0);
+  const SEP='\t', NL='\n';
+  let csv='﻿';
+  csv+='Mes'+SEP+'NF'+SEP+'Cliente'+SEP+'Observacao'+SEP+'Tipo'+SEP+'Valor (R$)'+SEP+'Vencimento'+SEP+'Status'+NL;
+  rows.forEach(r=>{
+    const v=r.valor.toFixed(2).replace('.',',');
+    var venE=r.vencimento?r.vencimento.split('-').reverse().join('/'):'';
+    csv+=r.mes+SEP+r.nf+SEP+r.cliente+SEP+r.obs+SEP+r.tipo+SEP+v+SEP+venE+SEP+r.status+NL;
+  });
+  csv+=SEP+'TOTAL'+SEP+SEP+SEP+SEP+total.toFixed(2).replace('.',',')+SEP+NL;
+  const blob=new Blob([csv],{type:'text/tab-separated-values;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='ontrade_notas_'+mesSelecionado.toLowerCase().replace(' ','_')+'_2026.xls';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
