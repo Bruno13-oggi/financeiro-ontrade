@@ -277,6 +277,198 @@ tfoot td.num{text-align:right;}
 </head>
 <body>
 
+<!-- ══ TELA DE LOGIN ══ -->
+<div id="loginPage" style="position:fixed;inset:0;background:#1a1a1a;display:flex;align-items:center;justify-content:center;z-index:9999;font-family:'Inter',sans-serif;">
+  <div style="width:100%;max-width:400px;padding:24px;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:40px;">
+      <svg width="72" height="44" viewBox="0 0 104 60" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:16px;">
+        <rect x="2" y="2" width="100" height="56" rx="28" fill="#282828" stroke="#F7C600" stroke-width="2"/>
+        <rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/>
+        <circle cx="74" cy="30" r="17" fill="#F7C600"/>
+      </svg>
+      <div style="font-size:28px;font-weight:900;color:#FFFFFF;letter-spacing:-1px;">on<span style="color:#F7C600;">trade</span></div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;letter-spacing:.5px;">Dashboard Financeiro</div>
+    </div>
+    <!-- Card -->
+    <div style="background:#242424;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;">
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;">Bem-vindo</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:28px;">Faça login para continuar</div>
+      <div id="loginErr" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:16px;">
+        Login ou senha incorretos.
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Login</label>
+        <input id="loginUser" type="text" placeholder="seu.login" autocomplete="username"
+          style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px 16px;font-size:14px;color:#fff;outline:none;font-family:'Inter',sans-serif;"
+          onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()"/>
+      </div>
+      <div style="margin-bottom:24px;">
+        <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Senha</label>
+        <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:12px 16px;font-size:14px;color:#fff;outline:none;font-family:'Inter',sans-serif;"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button onclick="doLogin()" style="width:100%;background:#F7C600;color:#282828;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.3px;transition:all .2s;"
+        onmouseover="this.style.background='#FFD740'" onmouseout="this.style.background='#F7C600'">
+        Entrar
+      </button>
+    </div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,0.2);">ontrade · Acesso restrito</div>
+  </div>
+</div>
+
+<!-- ══ PAINEL ADMIN ══ -->
+<div id="adminPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8888;backdrop-filter:blur(4px);align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
+  <div style="background:#1e1e1e;border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;margin:20px;">
+    <div style="padding:24px 28px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:18px;font-weight:800;color:#fff;">Gerenciar Usuários</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">Painel Administrativo</div>
+      </div>
+      <button onclick="fecharAdmin()" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;padding:8px 14px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;">✕ Fechar</button>
+    </div>
+    <div style="padding:24px 28px;">
+      <!-- Lista de usuários -->
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Usuários ativos</div>
+      <div id="adminUserList" style="margin-bottom:28px;"></div>
+      <!-- Adicionar usuário -->
+      <div style="background:rgba(247,198,0,0.05);border:1px solid rgba(247,198,0,0.15);border-radius:14px;padding:20px;">
+        <div style="font-size:13px;font-weight:700;color:#F7C600;margin-bottom:16px;">➕ Adicionar usuário</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">Nome completo</label>
+            <input id="newNome" placeholder="Ex: João Silva" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">Cargo</label>
+            <input id="newCargo" placeholder="Ex: Analista" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">Login</label>
+            <input id="newLogin" placeholder="Ex: joao.silva" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;"/>
+          </div>
+          <div>
+            <label style="font-size:11px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">Senha</label>
+            <input id="newSenha" type="password" placeholder="Senha segura" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;"/>
+          </div>
+        </div>
+        <button onclick="adicionarUser()" style="background:#F7C600;color:#282828;border:none;border-radius:8px;padding:10px 20px;font-weight:800;cursor:pointer;font-size:13px;">Adicionar</button>
+        <span id="adminMsg" style="margin-left:12px;font-size:12px;color:#10B981;display:none;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUTH ──
+function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))&0xFFFFFFFF;}return(h>>>0).toString(16).padStart(8,'0');}
+
+var USERS_BASE = {"Bruno.silva": {"hash": "8c2354a8", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}, "Danivia.Paim": {"hash": "c80f799d", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"hash": "c80f799d", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
+
+function getUsers(){
+  var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
+  return Object.assign({},USERS_BASE,extra);
+}
+
+function doLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value;
+  var users=getUsers();
+  var err=document.getElementById('loginErr');
+  if(users[u]&&users[u].hash===simpleHash(p)){
+    sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:users[u].nome,cargo:users[u].cargo,role:users[u].role}));
+    document.getElementById('loginPage').style.display='none';
+    iniciarDashboard(users[u]);
+  }else{
+    err.style.display='block';
+    document.getElementById('loginPass').value='';
+  }
+}
+
+function iniciarDashboard(user){
+  // Mostra nome do usuário no header
+  var hr=document.getElementById('headerRight');
+  if(hr){
+    var adminBtn=user.role==='admin'?'<button onclick="abrirAdmin()" style="background:#F7C600;color:#282828;border:none;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;">⚙ Admin</button>':'';
+    hr.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'+adminBtn+'<div style="text-align:right;"><div style="font-size:12px;font-weight:700;color:#fff;">'+user.nome+'</div><div style="font-size:10px;color:rgba(255,255,255,0.45);">'+user.cargo+'</div></div><button onclick="doLogout()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;">Sair</button></div>';
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('ontrade_session');
+  location.reload();
+}
+
+// ── ADMIN ──
+function abrirAdmin(){
+  renderAdminList();
+  var p=document.getElementById('adminPanel');
+  p.style.display='flex';
+}
+function fecharAdmin(){document.getElementById('adminPanel').style.display='none';}
+
+function renderAdminList(){
+  var users=getUsers();
+  var base=Object.keys(USERS_BASE);
+  var html='';
+  Object.entries(users).forEach(function(entry){
+    var login=entry[0],u=entry[1];
+    var isMaster=login==='Bruno.silva';
+    var isBase=base.indexOf(login)>=0;
+    var badge=u.role==='admin'?'<span style="background:rgba(247,198,0,0.15);color:#F7C600;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;">Admin</span>':'<span style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);padding:2px 8px;border-radius:10px;font-size:10px;">Usuário</span>';
+    var removeBtn=isMaster?'':`<button onclick="removerUser('`+login+`')" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:4px 10px;color:#F87171;font-size:11px;cursor:pointer;">Remover</button>`;
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:8px;">'
+      +'<div><div style="font-size:13px;font-weight:700;color:#fff;">'+u.nome+'</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;"><code style="color:#F7C600;">'+login+'</code> · '+u.cargo+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;">'+badge+removeBtn+'</div></div>';
+  });
+  document.getElementById('adminUserList').innerHTML=html;
+}
+
+function adicionarUser(){
+  var nome=document.getElementById('newNome').value.trim();
+  var cargo=document.getElementById('newCargo').value.trim();
+  var login=document.getElementById('newLogin').value.trim();
+  var senha=document.getElementById('newSenha').value;
+  if(!nome||!cargo||!login||!senha){alert('Preencha todos os campos.');return;}
+  var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
+  extra[login]={hash:simpleHash(senha),role:'user',nome:nome,cargo:cargo};
+  localStorage.setItem('ontrade_users',JSON.stringify(extra));
+  document.getElementById('newNome').value='';
+  document.getElementById('newCargo').value='';
+  document.getElementById('newLogin').value='';
+  document.getElementById('newSenha').value='';
+  var msg=document.getElementById('adminMsg');
+  msg.textContent='✓ Usuário '+nome+' adicionado!';
+  msg.style.display='inline';
+  setTimeout(function(){msg.style.display='none';},3000);
+  renderAdminList();
+}
+
+function removerUser(login){
+  if(!confirm('Remover o usuário '+login+'?'))return;
+  var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
+  delete extra[login];
+  localStorage.setItem('ontrade_users',JSON.stringify(extra));
+  renderAdminList();
+}
+
+// Verifica sessão ao carregar
+(function(){
+  var s=sessionStorage.getItem('ontrade_session');
+  if(s){
+    var user=JSON.parse(s);
+    var users=getUsers();
+    if(users[user.login]){
+      document.getElementById('loginPage').style.display='none';
+      iniciarDashboard(user);
+    }
+  }
+})();
+</script>
+
+
 <!-- HEADER -->
 <div class="header">
   <div class="header-left">
@@ -297,8 +489,8 @@ tfoot td.num{text-align:right;}
       <p>Notas Emitidas · Janeiro a Maio</p>
     </div>
   </div>
-  <div class="header-right">
-    <div class="update-badge">✓ Atualizado 02/06/2026 19:21</div>
+  <div class="header-right" id="headerRight">
+    <div class="update-badge">✓ Atualizado 03/06/2026 18:11</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
@@ -504,7 +696,7 @@ tfoot td.num{text-align:right;}
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">02/06/2026 19:21</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">03/06/2026 18:11</strong></div>
 </div>
 
 <script>
