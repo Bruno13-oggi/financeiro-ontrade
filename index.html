@@ -301,7 +301,7 @@ tfoot td.num{text-align:right;}
     <div style="background:#FFFFFF;border:1px solid #E4E6EB;border-radius:24px;padding:36px;box-shadow:0 8px 40px rgba(0,0,0,0.08);">
       <div style="font-size:20px;font-weight:800;color:#1A1A1A;margin-bottom:4px;">Bem-vindo</div>
       <div style="font-size:13px;color:#9CA3AF;margin-bottom:28px;">Faça login para acessar o dashboard</div>
-      <div id="loginErr" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 14px;font-size:13px;color:#EF4444;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+      <div id="loginErr" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 14px;font-size:13px;color:#EF4444;margin-bottom:16px;align-items:center;gap:8px;">
         ⚠️ Login ou senha incorretos.
       </div>
       <div style="margin-bottom:16px;">
@@ -388,22 +388,28 @@ function doLogin(){
   var users=getUsers();
   var err=document.getElementById('loginErr');
   if(users[u]&&users[u].hash===simpleHash(p)){
+    err.style.display='none';
     sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:users[u].nome,cargo:users[u].cargo,role:users[u].role}));
     document.getElementById('loginPage').style.display='none';
     iniciarDashboard(users[u]);
   }else{
-    err.style.display='block';
+    err.style.display='flex';
     document.getElementById('loginPass').value='';
   }
 }
 
 function iniciarDashboard(user){
+  // Mostra o dashboard
+  var dash=document.getElementById('dashboardWrap');
+  if(dash) dash.style.display='block';
   // Mostra nome do usuário no header
   var hr=document.getElementById('headerRight');
   if(hr){
     var adminBtn=user.role==='admin'?'<button onclick="abrirAdmin()" style="background:#F7C600;color:#282828;border:none;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;">⚙ Admin</button>':'';
     hr.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'+adminBtn+'<div style="text-align:right;"><div style="font-size:12px;font-weight:700;color:#fff;">'+user.nome+'</div><div style="font-size:10px;color:rgba(255,255,255,0.45);">'+user.cargo+'</div></div><button onclick="doLogout()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;">Sair</button></div>';
   }
+  // Força redimensionamento dos gráficos
+  setTimeout(function(){window.dispatchEvent(new Event('resize'));},100);
 }
 
 function doLogout(){
@@ -480,6 +486,7 @@ function removerUser(login){
 </script>
 
 
+<div id="dashboardWrap" style="display:none;">
 <!-- HEADER -->
 <div class="header">
   <div class="header-left">
@@ -501,7 +508,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 03/06/2026 18:25</div>
+    <div class="update-badge">✓ Atualizado 03/06/2026 18:42</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
@@ -707,7 +714,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">03/06/2026 18:25</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">03/06/2026 18:42</strong></div>
 </div>
 
 <script>
@@ -1030,5 +1037,6 @@ function exportarExcel(){
   URL.revokeObjectURL(url);
 }
 </script>
+</div><!-- /dashboardWrap -->
 </body>
 </html>
