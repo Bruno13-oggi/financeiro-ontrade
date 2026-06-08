@@ -393,8 +393,8 @@ window._firebaseSignIn = signInWithEmailAndPassword;
 // ── AUTH ──
 function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))&0xFFFFFFFF;}return(h>>>0).toString(16).padStart(8,'0');}
 
-var USERS_BASE  = {"Danivia.Paim": {"hash": "c80f799d", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"hash": "c80f799d", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
-var FIREBASE_USERS = {"Bruno.silva": {"email": "bruno.silva@oggigroup.com.br", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}};
+var USERS_BASE  = {};
+var FIREBASE_USERS = {"Bruno.silva": {"email": "bruno.silva@oggigroup.com.br", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}, "Danivia.Paim": {"email": "danivia.paim@oggigroup.com.br", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"email": "erika.santana@oggigroup.com.br", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
 
 function getUsers(){
   var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
@@ -554,7 +554,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 08/06/2026 18:25</div>
+    <div class="update-badge">✓ Atualizado 08/06/2026 18:37</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
@@ -760,7 +760,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">08/06/2026 18:25</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">08/06/2026 18:37</strong></div>
 </div>
 
 <script>
