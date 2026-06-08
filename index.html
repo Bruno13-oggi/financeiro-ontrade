@@ -318,7 +318,7 @@ tfoot td.num{text-align:right;}
           onfocus="this.style.borderColor='#F7C600'" onblur="this.style.borderColor='#E4E6EB'"
           onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
-      <button onclick="doLogin()"
+      <button id="entrarBtn" onclick="doLogin()"
         style="width:100%;background:#F7C600;color:#282828;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.3px;transition:all .2s;box-shadow:0 4px 16px rgba(247,198,0,0.35);"
         onmouseover="this.style.background='#FFD740';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.background='#F7C600';this.style.transform='translateY(0)'">
@@ -371,30 +371,76 @@ tfoot td.num{text-align:right;}
   </div>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseApp = initializeApp({
+  apiKey: "AIzaSyCW6fpn8K31NEhU4GnDRqW6Kc6nDD4qNoA",
+  authDomain: "ontrade-dashboard.firebaseapp.com",
+  projectId: "ontrade-dashboard",
+  storageBucket: "ontrade-dashboard.firebasestorage.app",
+  messagingSenderId: "748553058721",
+  appId: "1:748553058721:web:9b5c1931f3e7d9a68c73e0"
+});
+const auth = getAuth(firebaseApp);
+window._firebaseAuth = auth;
+window._firebaseSignIn = signInWithEmailAndPassword;
+</script>
+
 <script>
 // ── AUTH ──
 function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))&0xFFFFFFFF;}return(h>>>0).toString(16).padStart(8,'0');}
 
-var USERS_BASE = {"Bruno.silva": {"hash": "8c2354a8", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}, "Danivia.Paim": {"hash": "c80f799d", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"hash": "c80f799d", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
+var USERS_BASE  = {"Danivia.Paim": {"hash": "c80f799d", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"hash": "c80f799d", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
+var FIREBASE_USERS = {"Bruno.silva": {"email": "bruno.silva@oggigroup.com.br", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}};
 
 function getUsers(){
   var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
   return Object.assign({},USERS_BASE,extra);
 }
 
+function showErr(){
+  document.getElementById('loginErr').style.display='flex';
+  document.getElementById('loginPass').value='';
+  document.getElementById('entrarBtn').disabled=false;
+  document.getElementById('entrarBtn').textContent='Entrar';
+}
+
 function doLogin(){
   var u=document.getElementById('loginUser').value.trim();
   var p=document.getElementById('loginPass').value;
-  var users=getUsers();
   var err=document.getElementById('loginErr');
+  err.style.display='none';
+  document.getElementById('entrarBtn').disabled=true;
+  document.getElementById('entrarBtn').textContent='Entrando...';
+
+  // Verifica se é usuário Firebase (admin)
+  if(FIREBASE_USERS[u]){
+    var fbUser=FIREBASE_USERS[u];
+    if(window._firebaseAuth && window._firebaseSignIn){
+      window._firebaseSignIn(window._firebaseAuth, fbUser.email, p)
+        .then(function(){
+          sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:fbUser.nome,cargo:fbUser.cargo,role:fbUser.role}));
+          document.getElementById('loginPage').style.display='none';
+          iniciarDashboard(fbUser);
+        })
+        .catch(function(){ showErr(); });
+    }else{
+      setTimeout(function(){doLogin();},500); // aguarda SDK carregar
+    }
+    return;
+  }
+
+  // Usuários locais (Danivia, Erika e extras do admin)
+  var users=getUsers();
   if(users[u]&&users[u].hash===simpleHash(p)){
-    err.style.display='none';
     sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:users[u].nome,cargo:users[u].cargo,role:users[u].role}));
     document.getElementById('loginPage').style.display='none';
     iniciarDashboard(users[u]);
   }else{
-    err.style.display='flex';
-    document.getElementById('loginPass').value='';
+    showErr();
   }
 }
 
@@ -508,7 +554,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 03/06/2026 18:42</div>
+    <div class="update-badge">✓ Atualizado 08/06/2026 18:25</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
@@ -714,7 +760,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">03/06/2026 18:42</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">08/06/2026 18:25</strong></div>
 </div>
 
 <script>
