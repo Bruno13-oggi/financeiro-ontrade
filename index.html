@@ -392,7 +392,7 @@ window._firebaseSignIn = signInWithEmailAndPassword;
 // Restaura sessão automaticamente se Firebase auth ainda válido
 onAuthStateChanged(auth, function(fbUser) {
   if(fbUser && !window._dashboardLoaded) {
-    var s = sessionStorage.getItem('ontrade_session');
+    var s = localStorage.getItem('ontrade_session');
     if(s) {
       try {
         var user = JSON.parse(s);
@@ -403,6 +403,24 @@ onAuthStateChanged(auth, function(fbUser) {
           if(typeof iniciarDashboard === 'function') iniciarDashboard(user);
         }
       } catch(e) { console.warn('Restore session error:', e); }
+    } else {
+      // Firebase autenticado mas sem sessão local — recria automaticamente
+      if(window._FIREBASE_USERS) {
+        var email = fbUser.email;
+        for(var login in window._FIREBASE_USERS) {
+          var fu = window._FIREBASE_USERS[login];
+          var fuEmail = typeof fu === 'string' ? fu : fu.email;
+          if(fuEmail === email) {
+            var fuData = typeof fu === 'object' ? fu : {email:fu,nome:login.replace('.',' '),cargo:'',role:'admin'};
+            localStorage.setItem('ontrade_session', JSON.stringify({login:login,nome:fuData.nome,cargo:fuData.cargo,role:fuData.role}));
+            window._dashboardLoaded = true;
+            var lp = document.getElementById('loginPage');
+            if(lp) lp.style.display = 'none';
+            if(typeof iniciarDashboard === 'function') iniciarDashboard(fuData);
+            break;
+          }
+        }
+      }
     }
   }
 });
@@ -443,7 +461,7 @@ function doLogin(){
       window._firebaseSignIn(window._firebaseAuth, fbUser.email, p)
         .then(function(){
           window._dashboardLoaded=true;
-          sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:fbUser.nome,cargo:fbUser.cargo,role:fbUser.role}));
+          localStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:fbUser.nome,cargo:fbUser.cargo,role:fbUser.role}));
           document.getElementById('loginPage').style.display='none';
           iniciarDashboard(fbUser);
         })
@@ -457,7 +475,7 @@ function doLogin(){
   // Usuários locais (Danivia, Erika e extras do admin)
   var users=getUsers();
   if(users[u]&&users[u].hash===simpleHash(p)){
-    sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:users[u].nome,cargo:users[u].cargo,role:users[u].role}));
+    localStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:users[u].nome,cargo:users[u].cargo,role:users[u].role}));
     document.getElementById('loginPage').style.display='none';
     iniciarDashboard(users[u]);
   }else{
@@ -482,7 +500,7 @@ function iniciarDashboard(user){
 }
 
 function doLogout(){
-  sessionStorage.removeItem('ontrade_session');
+  localStorage.removeItem('ontrade_session');
   location.reload();
 }
 
@@ -543,7 +561,7 @@ function removerUser(login){
 // Verifica sessão ao carregar — apenas para usuários locais (não Firebase)
 // Usuários Firebase são restaurados via onAuthStateChanged no módulo acima
 (function(){
-  var s=sessionStorage.getItem('ontrade_session');
+  var s=localStorage.getItem('ontrade_session');
   if(s){
     var user=JSON.parse(s);
     if(!FIREBASE_USERS[user.login]){
@@ -583,7 +601,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 11/06/2026 17:13</div>
+    <div class="update-badge">✓ Atualizado 11/06/2026 17:30</div>
     <div class="pill"><strong>159</strong> notas · Junho</div>
   </div>
 </div>
@@ -789,7 +807,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 17:13</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 17:30</strong></div>
 </div>
 
 <script>
