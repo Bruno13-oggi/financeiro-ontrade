@@ -601,7 +601,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 11/06/2026 17:31</div>
+    <div class="update-badge">✓ Atualizado 11/06/2026 18:17</div>
     <div class="pill"><strong>157</strong> notas · Junho</div>
   </div>
 </div>
@@ -612,6 +612,7 @@ function removerUser(login){
   <div class="nav-tab" onclick="trocarView('v-comp',this)">📈 Comparativo 2025 vs 2026</div>
   <div class="nav-tab" onclick="trocarView('v-cli',this)">👥 Por Cliente</div>
   <div class="nav-tab" onclick="trocarView('v-notas',this)">📋 Notas Emitidas</div>
+  <div class="nav-tab" onclick="trocarView('v-vencidos',this)" id="navVencidos">⚠️ Vencidos</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -801,13 +802,78 @@ function removerUser(login){
 </div>
 </div>
 
+<!-- ════════════════════════════════════════
+     VIEW: VENCIDOS
+════════════════════════════════════════ -->
+<div id="v-vencidos" class="view">
+<div class="content">
+  <div class="kpi-row">
+    <div class="kpi" style="border-top:3px solid #EF4444;">
+      <span class="kpi-icon">💸</span>
+      <div class="kpi-label">Total Vencido</div>
+      <div class="kpi-val" id="vencKpiTotal" style="color:#EF4444;">—</div>
+      <span class="kpi-badge" id="vencKpiBadge" style="background:rgba(239,68,68,0.1);color:#EF4444;">—</span>
+    </div>
+    <div class="kpi" style="border-top:3px solid #EF4444;">
+      <span class="kpi-icon">📄</span>
+      <div class="kpi-label">Notas Vencidas</div>
+      <div class="kpi-val" id="vencKpiQtd" style="color:#EF4444;">—</div>
+      <span class="kpi-badge b-neu" id="vencKpiQtdBadge">em aberto</span>
+    </div>
+    <div class="kpi" style="border-top:3px solid #EF4444;">
+      <span class="kpi-icon">👤</span>
+      <div class="kpi-label">Clientes em Atraso</div>
+      <div class="kpi-val" id="vencKpiCli" style="color:#EF4444;">—</div>
+      <span class="kpi-badge b-neu">clientes</span>
+    </div>
+    <div class="kpi" style="border-top:3px solid #F7C600;">
+      <span class="kpi-icon">⏱️</span>
+      <div class="kpi-label">Maior Atraso</div>
+      <div class="kpi-val" id="vencKpiMax">—</div>
+      <span class="kpi-badge b-neu" id="vencKpiMaxNome">—</span>
+    </div>
+  </div>
+
+  <div class="tcard">
+    <div class="ttop">
+      <div>
+        <div class="card-title"><span class="tdot" style="background:#EF4444;"></span>Notas Vencidas</div>
+        <div class="card-sub">Ordenado do mais atrasado ao mais recente</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="ftabs" id="vencFiltroTabs">
+          <div class="ftab on" onclick="filtrarVencidos(this,'todos')">Todos</div>
+          <div class="ftab" onclick="filtrarVencidos(this,'30')">+30 dias</div>
+          <div class="ftab" onclick="filtrarVencidos(this,'60')">+60 dias</div>
+          <div class="ftab" onclick="filtrarVencidos(this,'90')">+90 dias</div>
+        </div>
+        <button onclick="exportarVencidos()" style="display:inline-flex;align-items:center;gap:6px;background:#EF4444;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+          ⬇️ Exportar Excel
+        </button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:600px;">
+      <thead><tr>
+        <th style="color:#EF4444;">Atraso</th>
+        <th>NF</th><th>Cliente</th><th>Observação</th><th>Mês</th>
+        <th class="num">Valor (R$)</th><th>Vencimento</th>
+      </tr></thead>
+      <tbody id="vencidosBody"></tbody>
+      <tfoot id="vencidosFoot" style="background:rgba(239,68,68,0.05);border-top:2px solid #EF4444;"></tfoot>
+    </table>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- FOOTER -->
 <div style="border-top:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--faint);background:var(--white);">
   <div style="display:flex;align-items:center;gap:10px;">
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 17:31</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 18:17</strong></div>
 </div>
 
 <script>
@@ -1022,6 +1088,7 @@ new Chart(document.getElementById('bar25full'),{type:'bar',
 // Inicializa as views após carregar os dados
   renderClientes();
   filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
+  renderVencidos();
 } // ── fim inicializarDashboard ──
 
 // ══════════════════════════════════════════════════════════
@@ -1167,6 +1234,108 @@ function imprimirNotas(){
   win.document.write(html);
   win.document.close();
   win.onload=function(){win.print();};
+}
+
+// ══ VENCIDOS ══
+function _getVencidos(){
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  return (NOTAS_26||[]).filter(r=>{
+    if(!r.vencimento)return false;
+    const dt=new Date(r.vencimento);
+    return dt<hoje&&r.status&&r.status.toUpperCase().includes('ABERTO');
+  }).sort((a,b)=>new Date(a.vencimento)-new Date(b.vencimento));
+}
+
+function renderVencidos(){
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const todos=_getVencidos();
+  const totalVenc=todos.reduce((s,r)=>s+r.valor,0);
+  const clientes=new Set(todos.map(r=>r.cliente)).size;
+
+  // KPIs
+  document.getElementById('vencKpiTotal').textContent=fmtR(totalVenc);
+  document.getElementById('vencKpiBadge').textContent=todos.length+' nota'+(todos.length!==1?'s':'');
+  document.getElementById('vencKpiQtd').textContent=todos.length;
+  document.getElementById('vencKpiCli').textContent=clientes;
+
+  // Maior atraso
+  if(todos.length>0){
+    const maisVelho=todos[0];
+    const dias=Math.floor((hoje-new Date(maisVelho.vencimento))/(864e5));
+    document.getElementById('vencKpiMax').textContent=dias+'d';
+    document.getElementById('vencKpiMaxNome').textContent=maisVelho.cliente;
+  }else{
+    document.getElementById('vencKpiMax').textContent='—';
+    document.getElementById('vencKpiMaxNome').textContent='Nenhuma';
+  }
+
+  // Badge na aba de navegação
+  var navBtn=document.getElementById('navVencidos');
+  if(navBtn){
+    navBtn.textContent=todos.length>0?'⚠️ Vencidos ('+todos.length+')':'⚠️ Vencidos';
+    navBtn.style.color=todos.length>0?'#EF4444':'';
+    navBtn.style.fontWeight=todos.length>0?'700':'';
+  }
+
+  _renderVencidosTabela(todos);
+}
+
+function filtrarVencidos(el,filtro){
+  document.querySelectorAll('#vencFiltroTabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const todos=_getVencidos();
+  const rows=filtro==='todos'?todos:todos.filter(r=>{
+    const dias=Math.floor((hoje-new Date(r.vencimento))/(864e5));
+    return dias>=parseInt(filtro);
+  });
+  _renderVencidosTabela(rows);
+}
+
+function _renderVencidosTabela(rows){
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  if(rows.length===0){
+    document.getElementById('vencidosBody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:#1AAE6F;font-weight:700;font-size:15px;">✅ Nenhuma nota vencida!</td></tr>';
+    document.getElementById('vencidosFoot').innerHTML='';
+    return;
+  }
+  document.getElementById('vencidosBody').innerHTML=rows.map(r=>{
+    const dias=Math.floor((hoje-new Date(r.vencimento))/(864e5));
+    const ven=r.vencimento.split('-').reverse().join('/');
+    const cor=dias>=90?'#B91C1C':dias>=60?'#DC2626':'#EF4444';
+    const bgRow=dias>=90?'background:rgba(239,68,68,0.08);':dias>=60?'background:rgba(239,68,68,0.05);':'';
+    return`<tr style="${bgRow}">
+      <td><span style="background:${cor};color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;">${dias}d</span></td>
+      <td class="td-dim">${r.nf}</td>
+      <td style="font-weight:700">${r.cliente}</td>
+      <td class="td-dim">${r.obs}</td>
+      <td class="td-dim">${r.mes}</td>
+      <td class="num td-val" style="color:#EF4444;font-weight:700">${fmtR(r.valor)}</td>
+      <td style="color:#EF4444;font-weight:700">${ven}</td>
+    </tr>`;
+  }).join('');
+  const total=rows.reduce((s,r)=>s+r.valor,0);
+  document.getElementById('vencidosFoot').innerHTML='<tr><td colspan="5" style="font-weight:900;font-size:13px;padding:12px 14px;">TOTAL — '+rows.length+' nota'+(rows.length!==1?'s':'')+'</td><td class="num" style="font-weight:900;font-size:15px;color:#EF4444;padding:12px 14px;">'+fmtR(total)+'</td><td></td></tr>';
+}
+
+function exportarVencidos(){
+  const rows=_getVencidos();
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const SEP='\t',NL='\n';
+  let csv='﻿';
+  csv+='Atraso (dias)'+SEP+'NF'+SEP+'Cliente'+SEP+'Observacao'+SEP+'Mes'+SEP+'Valor (R$)'+SEP+'Vencimento'+NL;
+  rows.forEach(r=>{
+    const dias=Math.floor((hoje-new Date(r.vencimento))/(864e5));
+    const ven=r.vencimento.split('-').reverse().join('/');
+    csv+=dias+SEP+r.nf+SEP+r.cliente+SEP+r.obs+SEP+r.mes+SEP+r.valor.toFixed(2).replace('.',',')+SEP+ven+NL;
+  });
+  const total=rows.reduce((s,r)=>s+r.valor,0);
+  csv+=SEP+'TOTAL'+SEP+SEP+SEP+SEP+total.toFixed(2).replace('.',',')+SEP+NL;
+  const blob=new Blob([csv],{type:'text/tab-separated-values;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='ontrade_vencidos_2026.xls';a.click();
+  URL.revokeObjectURL(url);
 }
 
 function exportarExcel(){
