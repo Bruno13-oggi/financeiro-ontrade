@@ -583,7 +583,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 11/06/2026 09:28</div>
+    <div class="update-badge">✓ Atualizado 11/06/2026 09:41</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
@@ -789,7 +789,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 09:28</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 09:41</strong></div>
 </div>
 
 <script>
@@ -804,6 +804,8 @@ let MESES_C,LABELS_C,VALS_26C,VALS_25C,ACUM_26C,ACUM_25C,VAR_PCT;
 let RECEBIDO,EM_ABERTO,TOTAL_26,CLI_26,CLI_25,NOTAS_26,NOTAS_25;
 let NOTAS=[], anoNotasAtivo=2026;
 let _chartsInit=false;
+// ── Estado global das abas interativas (precisa ser global para onclick funcionar) ──
+let DB=null, anoAtivo='2026', viewAtiva='tabela', stackedChart=null;
 
 // ══ CARREGAR FIRESTORE ══
 async function carregarDadosFirestore(){
@@ -856,6 +858,8 @@ function inicializarDashboard(d,notas26,notas25){
   RECEBIDO=d.recebido;EM_ABERTO=d.em_aberto;TOTAL_26=d.total_26;
   CLI_26=d.cli_26;CLI_25=d.cli_25;
   NOTAS_26=notas26;NOTAS_25=notas25;NOTAS=NOTAS_26;
+  // Popula DB global (funções renderClientes etc. usam isso)
+  DB={'2026':{meses:MESES_26,labels:LABELS_26,clientes:CLI_26},'2025':{meses:MESES_25,labels:LABELS_25,clientes:CLI_25}};
 
   // Atualiza KPIs
   document.getElementById('kpi-total26').textContent=fmtR(d.total_26);
@@ -997,32 +1001,33 @@ new Chart(document.getElementById('bar25full'),{type:'bar',
              y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
 });
 
-// ── POR CLIENTE ──
-const DB={
-  '2026':{meses:MESES_26,labels:LABELS_26,clientes:CLI_26},
-  '2025':{meses:MESES_25,labels:LABELS_25,clientes:CLI_25},
-};
-let anoAtivo='2026', viewAtiva='tabela', stackedChart=null;
+// Inicializa as views após carregar os dados
+  renderClientes();
+  filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
+} // ── fim inicializarDashboard ──
 
+// ══════════════════════════════════════════════════════════
+// FUNÇÕES GLOBAIS — precisam estar no escopo global para que
+// os atributos onclick="..." do HTML consigam chamá-las
+// ══════════════════════════════════════════════════════════
+
+// ── POR CLIENTE ──
 function renderClientes(){
+  if(!DB) return;
   const d=DB[anoAtivo], MESES=d.meses, LABELS=d.labels;
   const CLIS=Object.keys(d.clientes).filter(c=>MESES.reduce((a,m)=>a+(d.clientes[c][m]||0),0)>0).sort((a,b)=>MESES.reduce((s,m)=>s+(d.clientes[b][m]||0),0)-MESES.reduce((s,m)=>s+(d.clientes[a][m]||0),0));
   const cliTot={};CLIS.forEach(c=>{cliTot[c]=MESES.reduce((a,m)=>a+(d.clientes[c][m]||0),0);});
   const grand=Object.values(cliTot).reduce((a,v)=>a+v,0);
   const mesTot=MESES.map(m=>CLIS.reduce((a,c)=>a+(d.clientes[c][m]||0),0));
   document.getElementById('cliSubtitle').textContent=`Faturamento por cliente · ${anoAtivo} · ${LABELS[0]} a ${LABELS[LABELS.length-1]}`;
-  // thead
   document.getElementById('cliThead').innerHTML=`<th>Cliente</th>`+LABELS.map(l=>`<th class="num">${l}</th>`).join('')+`<th class="num">Total ${anoAtivo}</th><th class="num">Part. %</th>`;
-  // tbody
   document.getElementById('cliTbody').innerHTML=CLIS.map((c,i)=>`<tr style="${i===0?'background:rgba(247,198,0,0.06);':''}">
     <td style="font-weight:700">${c}</td>
     ${MESES.map(m=>`<td class="num">${fmtFull(d.clientes[c][m]||0)}</td>`).join('')}
     <td class="num total-col">${fmtFull(cliTot[c])}</td>
     <td class="num"><span class="share-pill">${(cliTot[c]/grand*100).toFixed(1)}%</span></td>
   </tr>`).join('');
-  // tfoot
   document.getElementById('cliTfoot').innerHTML=`<tr><td style="font-weight:900">TOTAL</td>${mesTot.map(t=>`<td class="num">${fmtFull(t)}</td>`).join('')}<td class="num" style="color:#8a6200">${fmtFull(grand)}</td><td class="num"><span class="share-pill">100%</span></td></tr>`;
-  // cards
   const cols=Math.min(MESES.length,6);
   const grid=document.getElementById('cliCards');
   grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
@@ -1032,7 +1037,6 @@ function renderClientes(){
     const mesTotal=entries.reduce((a,x)=>a+x[1],0), maxV=entries[0]?.[1]||1;
     grid.innerHTML+=`<div class="cli-mes-card"><div class="cli-mes-label">${LABELS[mi]}</div><div class="cli-mes-total">${fmtMs(mesTotal)}</div>${entries.map(([c,v])=>`<div class="cli-bar-item"><div class="cli-bar-label"><span class="cname">${c}</span><span class="cval">${fmtMs(v)}</span></div><div class="cli-bar-track"><div class="cli-bar-fill" style="width:${(v/maxV*100).toFixed(0)}%"></div></div></div>`).join('')}</div>`;
   });
-  // stacked
   if(stackedChart){stackedChart.destroy();stackedChart=null;}
   if(viewAtiva==='grafico') buildStacked(d,CLIS,MESES,LABELS);
 }
@@ -1060,10 +1064,27 @@ function buildStacked(d,CLIS,MESES,LABELS){
   });
 }
 
-function setAno(el,ano){document.querySelectorAll('#anoTabs .ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');anoAtivo=ano;renderClientes();}
-function cliView(el,view){document.querySelectorAll('#viewTabs .ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');viewAtiva=view;document.getElementById('vTabela').style.display=view==='tabela'?'':'none';document.getElementById('vCards').style.display=view==='cards'?'':'none';document.getElementById('vGrafico').style.display=view==='grafico'?'':'none';if(view==='grafico'){const d=DB[anoAtivo];const CLIS=Object.keys(d.clientes).filter(c=>d.meses.reduce((a,m)=>a+(d.clientes[c][m]||0),0)>0).sort((a,b)=>d.meses.reduce((s,m)=>s+(d.clientes[b][m]||0),0)-d.meses.reduce((s,m)=>s+(d.clientes[a][m]||0),0));buildStacked(d,CLIS,d.meses,d.labels);}}
+function setAno(el,ano){
+  document.querySelectorAll('#anoTabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  anoAtivo=ano;
+  renderClientes();
+}
 
-renderClientes();
+function cliView(el,view){
+  document.querySelectorAll('#viewTabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  viewAtiva=view;
+  document.getElementById('vTabela').style.display=view==='tabela'?'block':'none';
+  document.getElementById('vCards').style.display=view==='cards'?'block':'none';
+  document.getElementById('vGrafico').style.display=view==='grafico'?'block':'none';
+  if(view==='grafico' && DB){
+    const d=DB[anoAtivo];
+    const CLIS=Object.keys(d.clientes).filter(c=>d.meses.reduce((a,m)=>a+(d.clientes[c][m]||0),0)>0)
+      .sort((a,b)=>d.meses.reduce((s,m)=>s+(d.clientes[b][m]||0),0)-d.meses.reduce((s,m)=>s+(d.clientes[a][m]||0),0));
+    buildStacked(d,CLIS,d.meses,d.labels);
+  }
+}
 
 // ── NOTAS EMITIDAS ──
 function setAnoNotas(el,ano){
@@ -1073,11 +1094,11 @@ function setAnoNotas(el,ano){
   NOTAS=ano===2026?NOTAS_26:NOTAS_25;
   document.getElementById('mesesTabs26').style.display=ano===2026?'':'none';
   document.getElementById('mesesTabs25').style.display=ano===2025?'':'none';
-  const primeiroTab=document.querySelector('#notasTabs .ftab');
-  filterNotas(primeiroTab,'Todos');
+  filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
 }
 
 function filterNotas(el,mes){
+  if(!el) return;
   document.querySelectorAll('#notasTabs .ftab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
   const rows=mes==='Todos'?NOTAS:NOTAS.filter(r=>r.mes===mes);
@@ -1095,10 +1116,8 @@ function filterNotas(el,mes){
   }).join('');
   const total=rows.reduce((a,r)=>a+r.valor,0);
   const qtd=rows.length;
-  document.getElementById('notasFoot').innerHTML='<tr><td colspan="5" style="font-weight:900;font-size:13px;padding:12px 14px;">TOTAL — '+qtd+' nota'+(qtd!==1?'s':'')+'</td><td class="num" style="font-weight:900;font-size:15px;color:#8a6200;padding:12px 14px;">'+fmtR(total)+'</td><td></td></tr>';
+  document.getElementById('notasFoot').innerHTML='<tr><td colspan="5" style="font-weight:900;font-size:13px;padding:12px 14px;">TOTAL — '+qtd+' nota'+(qtd!==1?'s':'')+'</td><td class="num" style="font-weight:900;font-size:15px;color:#8a6200;padding:12px 14px;">'+fmtR(total)+'</td><td></td><td></td></tr>';
 }
-filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
-} // ── fim inicializarDashboard ──
 
 function imprimirNotas(){
   var mes=document.querySelector('#notasTabs .ftab.on')?document.querySelector('#notasTabs .ftab.on').textContent:'Todos';
