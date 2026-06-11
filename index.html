@@ -374,7 +374,7 @@ tfoot td.num{text-align:right;}
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseApp = initializeApp({
   apiKey: "AIzaSyCW6fpn8K31NEhU4GnDRqW6Kc6nDD4qNoA",
@@ -388,6 +388,24 @@ const auth = getAuth(firebaseApp);
 window._firebaseApp = firebaseApp;
 window._firebaseAuth = auth;
 window._firebaseSignIn = signInWithEmailAndPassword;
+
+// Restaura sessão automaticamente se Firebase auth ainda válido
+onAuthStateChanged(auth, function(fbUser) {
+  if(fbUser && !window._dashboardLoaded) {
+    var s = sessionStorage.getItem('ontrade_session');
+    if(s) {
+      try {
+        var user = JSON.parse(s);
+        if(window._FIREBASE_USERS && window._FIREBASE_USERS[user.login]) {
+          window._dashboardLoaded = true;
+          var lp = document.getElementById('loginPage');
+          if(lp) lp.style.display = 'none';
+          if(typeof iniciarDashboard === 'function') iniciarDashboard(user);
+        }
+      } catch(e) { console.warn('Restore session error:', e); }
+    }
+  }
+});
 </script>
 
 <script>
@@ -396,6 +414,7 @@ function simpleHash(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(
 
 var USERS_BASE  = {};
 var FIREBASE_USERS = {"Bruno.silva": {"email": "bruno.silva@oggigroup.com.br", "role": "admin", "nome": "Bruno Silva", "cargo": "Coordenador Financeiro"}, "Danivia.Paim": {"email": "danivia.paim@oggigroup.com.br", "role": "user", "nome": "Danivia Paim", "cargo": "Gerente Financeiro"}, "Erika.Santana": {"email": "erika.santana@oggigroup.com.br", "role": "user", "nome": "Erika Santana", "cargo": "Sócia Diretora"}};
+window._FIREBASE_USERS = FIREBASE_USERS;
 
 function getUsers(){
   var extra=JSON.parse(localStorage.getItem('ontrade_users')||'{}');
@@ -423,6 +442,7 @@ function doLogin(){
     if(window._firebaseAuth && window._firebaseSignIn){
       window._firebaseSignIn(window._firebaseAuth, fbUser.email, p)
         .then(function(){
+          window._dashboardLoaded=true;
           sessionStorage.setItem('ontrade_session',JSON.stringify({login:u,nome:fbUser.nome,cargo:fbUser.cargo,role:fbUser.role}));
           document.getElementById('loginPage').style.display='none';
           iniciarDashboard(fbUser);
@@ -520,16 +540,22 @@ function removerUser(login){
   renderAdminList();
 }
 
-// Verifica sessão ao carregar
+// Verifica sessão ao carregar — apenas para usuários locais (não Firebase)
+// Usuários Firebase são restaurados via onAuthStateChanged no módulo acima
 (function(){
   var s=sessionStorage.getItem('ontrade_session');
   if(s){
     var user=JSON.parse(s);
-    var users=getUsers();
-    if(users[user.login]){
-      document.getElementById('loginPage').style.display='none';
-      iniciarDashboard(user);
+    if(!FIREBASE_USERS[user.login]){
+      // Usuário local — sem Firebase, restaura direto
+      var users=getUsers();
+      if(users[user.login]){
+        window._dashboardLoaded=true;
+        document.getElementById('loginPage').style.display='none';
+        iniciarDashboard(user);
+      }
     }
+    // Usuários Firebase são restaurados pelo onAuthStateChanged (módulo)
   }
 })();
 </script>
@@ -557,17 +583,17 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 08/06/2026 19:57</div>
+    <div class="update-badge">✓ Atualizado 11/06/2026 09:28</div>
     <div class="pill"><strong>138</strong> notas · Maio</div>
   </div>
 </div>
 
 <!-- NAVEGAÇÃO -->
 <div class="nav-tabs">
-  <div class="nav-tab on" onclick="trocarView('v-geral')">📊 Visão Geral</div>
-  <div class="nav-tab" onclick="trocarView('v-comp')">📈 Comparativo 2025 vs 2026</div>
-  <div class="nav-tab" onclick="trocarView('v-cli')">👥 Por Cliente</div>
-  <div class="nav-tab" onclick="trocarView('v-notas')">📋 Notas Emitidas</div>
+  <div class="nav-tab on" onclick="trocarView('v-geral',this)">📊 Visão Geral</div>
+  <div class="nav-tab" onclick="trocarView('v-comp',this)">📈 Comparativo 2025 vs 2026</div>
+  <div class="nav-tab" onclick="trocarView('v-cli',this)">👥 Por Cliente</div>
+  <div class="nav-tab" onclick="trocarView('v-notas',this)">📋 Notas Emitidas</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -736,7 +762,7 @@ function removerUser(login){
         <div class="ftabs" id="notasTabs">
           <div class="ftab on" onclick="filterNotas(this,'Todos')">Todos</div>
           <span id="mesesTabs26"><div class="ftab" onclick="filterNotas(this,'Janeiro')">Janeiro</div><div class="ftab" onclick="filterNotas(this,'Fevereiro')">Fevereiro</div><div class="ftab" onclick="filterNotas(this,'Marco')">Março</div><div class="ftab" onclick="filterNotas(this,'Abril')">Abril</div><div class="ftab" onclick="filterNotas(this,'Maio')">Maio</div></span>
-          <span id="mesesTabs25" style="display:none"><div class="ftab" onclick="filterNotas(this,'Janeiro')">Janeiro</div><div class="ftab" onclick="filterNotas(this,'Fevereiro')">Fevereiro</div><div class="ftab" onclick="filterNotas(this,'Marco')">Marco</div><div class="ftab" onclick="filterNotas(this,'Abril')">Abril</div><div class="ftab" onclick="filterNotas(this,'Maio')">Maio</div><div class="ftab" onclick="filterNotas(this,'Junho')">Junho</div><div class="ftab" onclick="filterNotas(this,'Julho')">Julho</div><div class="ftab" onclick="filterNotas(this,'Agosto')">Agosto</div><div class="ftab" onclick="filterNotas(this,'Setembro')">Setembro</div><div class="ftab" onclick="filterNotas(this,'Outubro')">Outubro</div><div class="ftab" onclick="filterNotas(this,'Novembro')">Novembro</div><div class="ftab" onclick="filterNotas(this,'Dezembro')">Dezembro</div></span>
+          <span id="mesesTabs25" style="display:none"><div class="ftab" onclick="filterNotas(this,'Janeiro')">Janeiro</div><div class="ftab" onclick="filterNotas(this,'Fevereiro')">Fevereiro</div><div class="ftab" onclick="filterNotas(this,'Marco')">Março</div><div class="ftab" onclick="filterNotas(this,'Abril')">Abril</div><div class="ftab" onclick="filterNotas(this,'Maio')">Maio</div><div class="ftab" onclick="filterNotas(this,'Junho')">Junho</div><div class="ftab" onclick="filterNotas(this,'Julho')">Julho</div><div class="ftab" onclick="filterNotas(this,'Agosto')">Agosto</div><div class="ftab" onclick="filterNotas(this,'Setembro')">Setembro</div><div class="ftab" onclick="filterNotas(this,'Outubro')">Outubro</div><div class="ftab" onclick="filterNotas(this,'Novembro')">Novembro</div><div class="ftab" onclick="filterNotas(this,'Dezembro')">Dezembro</div></span>
         </div>
         <button onclick="exportarExcel()" style="display:inline-flex;align-items:center;gap:6px;background:#1AAE6F;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
           ⬇️ Exportar Excel
@@ -763,7 +789,7 @@ function removerUser(login){
     <svg width="36" height="22" viewBox="0 0 104 60"><rect x="2" y="2" width="100" height="56" rx="28" fill="#282828"/><rect x="10" y="10" width="84" height="40" rx="20" fill="#FFFFFF"/><circle cx="74" cy="30" r="17" fill="#F7C600"/></svg>
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">08/06/2026 19:57</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">11/06/2026 09:28</strong></div>
 </div>
 
 <script>
@@ -809,11 +835,12 @@ const fmtMs = v=>v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,max
 const fmtFull = v=>v>0?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—';
 
 // ── NAV ──
-function trocarView(id){
+function trocarView(id,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
   document.getElementById(id).classList.add('on');
-  event.target.classList.add('on');
+  var tab=el||(event&&event.currentTarget)||null;
+  if(tab) tab.classList.add('on');
 }
 
 // ══ INICIALIZAR DASHBOARD COM DADOS DO FIRESTORE ══
@@ -834,11 +861,11 @@ function inicializarDashboard(d,notas26,notas25){
   document.getElementById('kpi-total26').textContent=fmtR(d.total_26);
   document.getElementById('kpi-total26-badge').textContent='Jan–'+d.ultimo_mes+' · '+d.qtd_notas+' notas';
   document.getElementById('kpi-recebido').textContent=fmtR(d.recebido);
-  document.getElementById('kpi-recebido-badge').textContent=(d.recebido/d.total_26*100).toFixed(1)+'% do total';
+  document.getElementById('kpi-recebido-badge').textContent=d.total_26>0?(d.recebido/d.total_26*100).toFixed(1)+'% do total':'—';
   document.getElementById('kpi-aberto').textContent=fmtR(d.em_aberto);
-  document.getElementById('kpi-aberto-badge').textContent=(d.em_aberto/d.total_26*100).toFixed(1)+'% do total';
+  document.getElementById('kpi-aberto-badge').textContent=d.total_26>0?(d.em_aberto/d.total_26*100).toFixed(1)+'% do total':'—';
   document.getElementById('kpi-melhor-mes').textContent=d.melhor_mes;
-  document.getElementById('kpi-melhor-mes-badge').textContent=fmtR(d.melhor_val)+' +'+d.melhor_var;
+  document.getElementById('kpi-melhor-mes-badge').textContent=fmtR(d.melhor_val)+' '+d.melhor_var;
   document.getElementById('kpi-cresc').textContent=(d.cresc>=0?'+':'')+d.cresc.toFixed(1)+'%';
   document.getElementById('kpi-cresc2').textContent=(d.cresc>=0?'+':'')+d.cresc.toFixed(1)+'%';
   document.getElementById('kpi-cresc2-badge').textContent=fmtR(d.tot_26c-d.tot_25c)+' a mais em 2026';
@@ -1013,25 +1040,23 @@ function renderClientes(){
 function buildStacked(d,CLIS,MESES,LABELS){
   if(stackedChart) return;
   stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
-    data:{labels:LABELS,datasets:CLIS.map((c,i)=>([{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderRadius:i===CLIS.length-1?6:0,borderSkipped:false}]))[0]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{color:B,font:{size:11,weight:'600'},padding:12,boxWidth:12}},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
-      scales:{x:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},y:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
-  });
-  // rebuild properly with all datasets
-  stackedChart.destroy();stackedChart=null;
-  stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
-    data:{labels:LABELS,datasets:CLIS.map((c,i)=>([{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderRadius:0,borderSkipped:false}]))[0]},
-    options:{responsive:true,maintainAspectRatio:false}
-  });
-  stackedChart.destroy();stackedChart=null;
-  stackedChart=new Chart(document.getElementById('stackedBar'),{type:'bar',
     data:{labels:LABELS,
-      datasets:CLIS.map((c,i)=>{return{label:c,data:MESES.map(m=>d.clientes[c][m]||0),backgroundColor:CLI_COLORS[i%CLI_COLORS.length],borderColor:'#FFF',borderWidth:1,borderSkipped:false};})
+      datasets:CLIS.map((c,i)=>{
+        return{label:c,data:MESES.map(m=>d.clientes[c][m]||0),
+          backgroundColor:CLI_COLORS[i%CLI_COLORS.length],
+          borderColor:'#FFF',borderWidth:1,borderSkipped:false};
+      })
     },
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{color:B,font:{size:11,weight:'600'},padding:10,boxWidth:12}},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
-      scales:{x:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},y:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
+      plugins:{
+        legend:{position:'bottom',labels:{color:B,font:{size:11,weight:'600'},padding:10,boxWidth:12}},
+        tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}
+      },
+      scales:{
+        x:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+        y:{stacked:true,grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}
+      }
+    }
   });
 }
 
