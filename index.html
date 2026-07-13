@@ -581,7 +581,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 10/07/2026 11:09</div>
+    <div class="update-badge">✓ Atualizado 13/07/2026 14:58</div>
     <div class="pill"><strong>176</strong> notas · Julho</div>
   </div>
 </div>
@@ -693,6 +693,22 @@ function removerUser(login){
     <div class="card-title"><span class="tdot"></span>2025 — Ano Completo (12 meses)</div>
     <div class="card-sub">Referência anual completa</div>
     <div class="chs"><canvas id="bar25full"></canvas></div>
+  </div>
+
+  <!-- COMPARATIVO POR CLIENTE -->
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Comparativo por Cliente — 2025 vs 2026</div>
+    <div class="card-sub">Faturamento total por cliente no período comparável</div>
+    <div class="chs" style="height:320px"><canvas id="barCliComp"></canvas></div>
+  </div>
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Tabela por Cliente — 2025 vs 2026</div>
+    <div class="card-sub">Variação absoluta e percentual por cliente</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:520px;">
+      <thead><tr><th>Cliente</th><th class="num">2025</th><th class="num">2026</th><th class="num">Var. R$</th><th class="num">Var. %</th></tr></thead>
+      <tbody id="compCliBody"></tbody>
+    </table></div>
   </div>
 </div>
 </div>
@@ -853,7 +869,7 @@ function removerUser(login){
     <img src="logo.png" alt="ontrade logo" style="height:28px;width:auto;object-fit:contain;">
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">10/07/2026 11:09</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">13/07/2026 14:58</strong></div>
 </div>
 
 <script>
@@ -1064,6 +1080,61 @@ new Chart(document.getElementById('bar25full'),{type:'bar',
     scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
              y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$ '+(v/1e6).toFixed(1)+'Mi'}}}}
 });
+
+// ── COMPARATIVO POR CLIENTE ──
+(function(){
+  // Soma total por cliente (período comparável = meses com dados em 2026)
+  const mesesComp = new Set(MESES_C);
+  const soma = (obj, filtro) => Object.entries(obj||{}).reduce((acc,[mes,val])=>{
+    if(!filtro || mesesComp.has(mes)) acc+=val;
+    return acc;
+  }, 0);
+
+  // Une clientes dos dois anos
+  const allCli = [...new Set([...Object.keys(CLI_26||{}), ...Object.keys(CLI_25||{})])];
+  const rows = allCli.map(cli=>{
+    const v26 = soma(CLI_26[cli], true);
+    const v25 = soma(CLI_25[cli], true);
+    return {cli, v26, v25, diff: v26-v25, pct: v25>0?((v26-v25)/v25*100):null};
+  }).sort((a,b)=>b.v26-a.v26);
+
+  // Gráfico
+  new Chart(document.getElementById('barCliComp'),{type:'bar',
+    data:{
+      labels: rows.map(r=>r.cli),
+      datasets:[
+        {label:'2026', data:rows.map(r=>r.v26), backgroundColor:'rgba(247,198,0,0.85)', borderColor:'#F7C600', borderWidth:1.5, borderRadius:5, borderSkipped:false},
+        {label:'2025', data:rows.map(r=>r.v25), backgroundColor:'rgba(200,200,200,0.6)', borderColor:'#C8C8C8', borderWidth:1.5, borderRadius:5, borderSkipped:false}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top'},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+      scales:{
+        x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'},maxRotation:30}},
+        y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$'+(v>=1e6?(v/1e6).toFixed(1)+'Mi':(v/1e3).toFixed(0)+'k')}}
+      }
+    }
+  });
+
+  // Tabela
+  document.getElementById('compCliBody').innerHTML = rows.map(r=>{
+    const up = r.diff >= 0;
+    const pctStr = r.pct!=null ? (up?'▲ ':'▼ ')+Math.abs(r.pct).toFixed(1)+'%' : '—';
+    return `<tr>
+      <td style="font-weight:700">${r.cli}</td>
+      <td class="num" style="color:var(--muted)">${fmtR(r.v25)}</td>
+      <td class="num" style="color:#8a6200">${fmtR(r.v26)}</td>
+      <td class="num ${up?'up':'down'}">${up?'+':''}${fmtR(r.diff)}</td>
+      <td class="num" style="font-weight:800;color:${up?'#1AAE6F':'#E03B3B'}">${pctStr}</td>
+    </tr>`;
+  }).join('') + `<tr style="background:rgba(247,198,0,0.06);border-top:2px solid ${Y}">
+    <td style="font-weight:900;color:#8a6200">TOTAL</td>
+    <td class="num" style="font-weight:900;color:var(--muted)">${fmtR(rows.reduce((a,r)=>a+r.v25,0))}</td>
+    <td class="num" style="font-weight:900;color:#8a6200">${fmtR(rows.reduce((a,r)=>a+r.v26,0))}</td>
+    <td class="num up" style="font-weight:900">+${fmtR(rows.reduce((a,r)=>a+r.diff,0))}</td>
+    <td class="num up" style="font-weight:900;color:#1AAE6F">▲ ${(rows.reduce((a,r)=>a+r.v26,0)/rows.reduce((a,r)=>a+r.v25,0)*100-100).toFixed(1)}%</td>
+  </tr>`;
+})();
 
 // Inicializa as views após carregar os dados
   renderClientes();
