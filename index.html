@@ -581,7 +581,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 13/07/2026 14:58</div>
+    <div class="update-badge">✓ Atualizado 13/07/2026 17:52</div>
     <div class="pill"><strong>176</strong> notas · Julho</div>
   </div>
 </div>
@@ -593,6 +593,7 @@ function removerUser(login){
   <div class="nav-tab" onclick="trocarView('v-cli',this)">👥 Por Cliente</div>
   <div class="nav-tab" onclick="trocarView('v-notas',this)">📋 Notas Emitidas</div>
   <div class="nav-tab" onclick="trocarView('v-vencidos',this)" id="navVencidos">⚠️ Vencidos</div>
+  <div class="nav-tab" onclick="trocarView('v-resultado',this)">💹 Resultado</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -863,13 +864,119 @@ function removerUser(login){
 </div>
 </div>
 
+<!-- ════════════════════════════════════════
+     VIEW: RESULTADO
+════════════════════════════════════════ -->
+<div id="v-resultado" class="view">
+<div class="content">
+
+  <!-- KPIs -->
+  <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi primary">
+      <span class="kpi-icon">💰</span>
+      <div class="kpi-label">Total Faturado 2026</div>
+      <div class="kpi-val" id="res-fat">—</div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-icon">💸</span>
+      <div class="kpi-label">Total Custo</div>
+      <div class="kpi-val" id="res-custo">—</div>
+    </div>
+    <div class="kpi" style="border-top:3px solid #1AAE6F;">
+      <span class="kpi-icon">✅</span>
+      <div class="kpi-label">Lucro Total</div>
+      <div class="kpi-val" id="res-lucro" style="color:#1AAE6F">—</div>
+    </div>
+    <div class="kpi" style="border-top:3px solid #F7C600;">
+      <span class="kpi-icon">📊</span>
+      <div class="kpi-label">Rentabilidade Média</div>
+      <div class="kpi-val" id="res-rent" style="color:#8a6200">—</div>
+    </div>
+  </div>
+
+  <!-- Gráficos linha 1 -->
+  <div class="g31 mb20">
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span>Faturamento vs Lucro por Mês</div>
+      <div class="card-sub">Evolução mensal de receita e lucro</div>
+      <div class="ch"><canvas id="resFatLucro"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span>Rentabilidade % por Mês</div>
+      <div class="card-sub">Margem de lucro mensal</div>
+      <div class="ch"><canvas id="resRentMes"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Gráficos linha 2 -->
+  <div class="g11 mb20">
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span>Lucro por Cliente</div>
+      <div class="card-sub">Resultado líquido por cliente</div>
+      <div class="ch"><canvas id="resLucroCli"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="tdot"></span>Rentabilidade por Cliente (%)</div>
+      <div class="card-sub">Margem de lucro por cliente</div>
+      <div class="ch"><canvas id="resRentCli"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tabela por Cliente -->
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Resultado por Cliente</div>
+    <div class="card-sub">Faturado, Custo, Lucro e Rentabilidade</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:560px;">
+      <thead><tr><th>Cliente</th><th class="num">Faturado</th><th class="num">Custo</th><th class="num">Lucro</th><th class="num">Rent. %</th></tr></thead>
+      <tbody id="resCliBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Tabela por Mês -->
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Resultado por Mês</div>
+    <div class="card-sub">Resumo mensal consolidado</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:520px;">
+      <thead><tr><th>Mês</th><th class="num">Faturado</th><th class="num">Custo</th><th class="num">Lucro</th><th class="num">Rent. %</th></tr></thead>
+      <tbody id="resMesBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Tabela de Jobs -->
+  <div class="card mb20">
+    <div class="card-title"><span class="tdot"></span>Detalhe por Job</div>
+    <div class="card-sub">Todos os jobs com faturamento, custo e lucro</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <input id="resJobBusca" type="text" placeholder="Buscar cliente ou job..." onInput="filtrarResJobs()"
+        style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;flex:1;min-width:180px;">
+      <select id="resJobMes" onchange="filtrarResJobs()"
+        style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;background:var(--white);">
+        <option value="">Todos os meses</option>
+      </select>
+      <select id="resJobCli" onchange="filtrarResJobs()"
+        style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none;background:var(--white);">
+        <option value="">Todos os clientes</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table style="min-width:640px;">
+      <thead><tr><th>Cliente</th><th>Job</th><th>Mês</th><th class="num">Faturado</th><th class="num">Custo</th><th class="num">Lucro</th><th class="num">Rent. %</th></tr></thead>
+      <tbody id="resJobBody"></tbody>
+    </table></div>
+  </div>
+
+</div>
+</div>
+
 <!-- FOOTER -->
 <div style="border-top:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--faint);background:var(--white);">
   <div style="display:flex;align-items:center;gap:10px;">
     <img src="logo.png" alt="ontrade logo" style="height:28px;width:auto;object-fit:contain;">
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">13/07/2026 14:58</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">13/07/2026 17:52</strong></div>
 </div>
 
 <script>
@@ -892,10 +999,12 @@ async function carregarDadosFirestore(){
   try{
     const {getFirestore,doc,getDoc}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const db=getFirestore(window._firebaseApp);
-    const [dadosSnap,n26Snap,n25Snap]=await Promise.all([
+    const [dadosSnap,n26Snap,n25Snap,resSnap,resJobsSnap]=await Promise.all([
       getDoc(doc(db,'dashboard','dados')),
       getDoc(doc(db,'dashboard','notas_2026')),
-      getDoc(doc(db,'dashboard','notas_2025'))
+      getDoc(doc(db,'dashboard','notas_2025')),
+      getDoc(doc(db,'dashboard','resultado')),
+      getDoc(doc(db,'dashboard','resultado_jobs'))
     ]);
     if(!dadosSnap.exists()){
       document.getElementById('dashboardWrap').innerHTML='<div style="padding:60px;text-align:center;color:#EF4444;font-size:18px;font-weight:700;">⚠️ Dados não encontrados. Rode o ATUALIZAR_DASHBOARD.bat!</div>';
@@ -904,7 +1013,10 @@ async function carregarDadosFirestore(){
     const d=dadosSnap.data();
     const n26=n26Snap.exists()?n26Snap.data().notas:[];
     const n25=n25Snap.exists()?n25Snap.data().notas:[];
+    const res=resSnap.exists()?resSnap.data():null;
+    const resJobs=resJobsSnap.exists()?resJobsSnap.data().jobs:[];
     inicializarDashboard(d,n26,n25);
+    if(res) inicializarResultado(res,resJobs);
   }catch(e){
     console.error('Erro Firestore:',e);
     document.getElementById('dashboardWrap').innerHTML='<div style="padding:60px;text-align:center;color:#EF4444;font-size:16px;">Erro ao carregar dados: '+e.message+'</div>';
@@ -1141,6 +1253,144 @@ new Chart(document.getElementById('bar25full'),{type:'bar',
   filterNotas(document.querySelector('#notasTabs .ftab'),'Todos');
   renderVencidos();
 } // ── fim inicializarDashboard ──
+
+// ══ RESULTADO 2026 ══════════════════════════════════════
+let _RES_JOBS=[];
+
+function inicializarResultado(res, jobs){
+  _RES_JOBS = jobs;
+
+  // KPIs
+  const fatTotal  = res.fat_cli.reduce((a,v)=>a+v,0);
+  const custoTotal= res.custo_cli.reduce((a,v)=>a+v,0);
+  const lucroTotal= res.lucro_cli.reduce((a,v)=>a+v,0);
+  const rentMedia = fatTotal>0?(lucroTotal/fatTotal*100):0;
+  document.getElementById('res-fat').textContent   = fmtR(fatTotal);
+  document.getElementById('res-custo').textContent = fmtR(custoTotal);
+  document.getElementById('res-lucro').textContent = fmtR(lucroTotal);
+  document.getElementById('res-rent').textContent  = rentMedia.toFixed(1)+'%';
+
+  // Gráfico: Faturamento vs Lucro por Mês
+  new Chart(document.getElementById('resFatLucro'),{type:'bar',
+    data:{labels:res.labels,datasets:[
+      {label:'Faturado',data:res.fat_mes,backgroundColor:'rgba(247,198,0,0.8)',borderColor:'#F7C600',borderWidth:1.5,borderRadius:5,borderSkipped:false},
+      {label:'Lucro',data:res.lucro_mes,backgroundColor:'rgba(26,174,111,0.8)',borderColor:'#1AAE6F',borderWidth:1.5,borderRadius:5,borderSkipped:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top'},tooltip:{...TT,callbacks:{label:c=>c.dataset.label+': '+fmtK(c.raw)}}},
+      scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+               y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$'+(v>=1e6?(v/1e6).toFixed(1)+'Mi':(v/1e3).toFixed(0)+'k')}}}
+    }
+  });
+
+  // Gráfico: Rentabilidade % por Mês
+  new Chart(document.getElementById('resRentMes'),{type:'line',
+    data:{labels:res.labels,datasets:[{
+      label:'Rentabilidade %',data:res.rent_mes,
+      borderColor:'#F7C600',backgroundColor:'rgba(247,198,0,0.15)',
+      borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#F7C600',fill:true,tension:0.3
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>c.raw.toFixed(1)+'%'}}},
+      scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'}}},
+               y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>v+'%'}}}
+    }
+  });
+
+  // Gráfico: Lucro por Cliente
+  new Chart(document.getElementById('resLucroCli'),{type:'bar',
+    data:{labels:res.clientes,datasets:[{
+      label:'Lucro',data:res.lucro_cli,
+      backgroundColor:res.lucro_cli.map(v=>v>=0?'rgba(26,174,111,0.8)':'rgba(224,59,59,0.8)'),
+      borderColor:res.lucro_cli.map(v=>v>=0?'#1AAE6F':'#E03B3B'),
+      borderWidth:1.5,borderRadius:5,borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>fmtK(c.raw)}}},
+      scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'},maxRotation:30}},
+               y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>'R$'+(v>=1e6?(v/1e6).toFixed(1)+'Mi':(v/1e3).toFixed(0)+'k')}}}
+    }
+  });
+
+  // Gráfico: Rentabilidade por Cliente
+  new Chart(document.getElementById('resRentCli'),{type:'bar',
+    data:{labels:res.clientes,datasets:[{
+      label:'Rent. %',data:res.rent_cli,
+      backgroundColor:res.rent_cli.map(v=>v>=0?'rgba(247,198,0,0.85)':'rgba(224,59,59,0.8)'),
+      borderColor:res.rent_cli.map(v=>v>=0?'#F7C600':'#E03B3B'),
+      borderWidth:1.5,borderRadius:5,borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>c.raw.toFixed(1)+'%'}}},
+      scales:{x:{grid:{color:'#EBEBEB'},ticks:{color:B,font:{weight:'600'},maxRotation:30}},
+               y:{grid:{color:'#EBEBEB'},ticks:{color:MUTED,callback:v=>v+'%'}}}
+    }
+  });
+
+  // Tabela por Cliente
+  const maxFatCli=Math.max(...res.fat_cli);
+  document.getElementById('resCliBody').innerHTML=res.clientes.map((c,i)=>{
+    const r=res.rent_cli[i], pos=r>=0;
+    return`<tr>
+      <td style="font-weight:700">${c}</td>
+      <td class="num">${fmtR(res.fat_cli[i])}</td>
+      <td class="num" style="color:var(--muted)">${fmtR(res.custo_cli[i])}</td>
+      <td class="num" style="color:${pos?'#1AAE6F':'#E03B3B'};font-weight:700">${fmtR(res.lucro_cli[i])}</td>
+      <td class="num" style="font-weight:800;color:${pos?'#1AAE6F':'#E03B3B'}">${pos?'▲':'▼'} ${Math.abs(r).toFixed(1)}%</td>
+    </tr>`;
+  }).join('')+`<tr style="background:rgba(247,198,0,0.06);border-top:2px solid ${Y}">
+    <td style="font-weight:900;color:#8a6200">TOTAL</td>
+    <td class="num" style="font-weight:900">${fmtR(fatTotal)}</td>
+    <td class="num" style="font-weight:900;color:var(--muted)">${fmtR(custoTotal)}</td>
+    <td class="num" style="font-weight:900;color:#1AAE6F">${fmtR(lucroTotal)}</td>
+    <td class="num" style="font-weight:900;color:#1AAE6F">▲ ${rentMedia.toFixed(1)}%</td>
+  </tr>`;
+
+  // Tabela por Mês
+  document.getElementById('resMesBody').innerHTML=res.labels.map((l,i)=>{
+    const r=res.rent_mes[i], pos=r>=0;
+    return`<tr>
+      <td style="font-weight:700">${l}</td>
+      <td class="num">${fmtR(res.fat_mes[i])}</td>
+      <td class="num" style="color:var(--muted)">${fmtR(res.custo_mes[i])}</td>
+      <td class="num" style="color:${pos?'#1AAE6F':'#E03B3B'};font-weight:700">${fmtR(res.lucro_mes[i])}</td>
+      <td class="num" style="font-weight:800;color:${pos?'#1AAE6F':'#E03B3B'}">${pos?'▲':'▼'} ${Math.abs(r).toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  // Popula filtros de Jobs
+  const mesesUnicos=[...new Set(jobs.map(j=>j.mes).filter(Boolean))];
+  const cliUnicos=[...new Set(jobs.map(j=>j.cliente))];
+  const selMes=document.getElementById('resJobMes');
+  const selCli=document.getElementById('resJobCli');
+  mesesUnicos.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; selMes.appendChild(o); });
+  cliUnicos.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; selCli.appendChild(o); });
+  filtrarResJobs();
+}
+
+function filtrarResJobs(){
+  const busca=(document.getElementById('resJobBusca').value||'').toLowerCase();
+  const mes=document.getElementById('resJobMes').value;
+  const cli=document.getElementById('resJobCli').value;
+  const rows=_RES_JOBS.filter(j=>
+    (!mes||j.mes===mes) &&
+    (!cli||j.cliente===cli) &&
+    (!busca||(j.cliente+' '+j.job).toLowerCase().includes(busca))
+  );
+  const pos=v=>v>=0;
+  document.getElementById('resJobBody').innerHTML=rows.map(j=>{
+    const r=j.fat>0?j.lucro/j.fat*100:0;
+    return`<tr>
+      <td style="font-weight:700">${j.cliente}</td>
+      <td style="font-size:11px;color:var(--muted)">${j.job}</td>
+      <td><span style="background:rgba(247,198,0,0.15);color:#8a6200;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">${j.mes}</span></td>
+      <td class="num">${fmtR(j.fat)}</td>
+      <td class="num" style="color:var(--muted)">${fmtR(j.custo)}</td>
+      <td class="num" style="color:${pos(j.lucro)?'#1AAE6F':'#E03B3B'};font-weight:700">${fmtR(j.lucro)}</td>
+      <td class="num" style="font-weight:800;color:${pos(r)?'#1AAE6F':'#E03B3B'}">${pos(r)?'▲':'▼'} ${Math.abs(r).toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+}
 
 // ══════════════════════════════════════════════════════════
 // FUNÇÕES GLOBAIS — precisam estar no escopo global para que
