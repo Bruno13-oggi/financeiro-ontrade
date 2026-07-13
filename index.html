@@ -581,7 +581,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 13/07/2026 17:52</div>
+    <div class="update-badge">✓ Atualizado 13/07/2026 17:58</div>
     <div class="pill"><strong>176</strong> notas · Julho</div>
   </div>
 </div>
@@ -976,7 +976,7 @@ function removerUser(login){
     <img src="logo.png" alt="ontrade logo" style="height:28px;width:auto;object-fit:contain;">
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">13/07/2026 17:52</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">13/07/2026 17:58</strong></div>
 </div>
 
 <script>
@@ -1378,6 +1378,11 @@ function filtrarResJobs(){
     (!busca||(j.cliente+' '+j.job).toLowerCase().includes(busca))
   );
   const pos=v=>v>=0;
+  const totalFat   = rows.reduce((a,j)=>a+j.fat,0);
+  const totalCusto = rows.reduce((a,j)=>a+j.custo,0);
+  const totalLucro = rows.reduce((a,j)=>a+j.lucro,0);
+  const totalRent  = totalFat>0?totalLucro/totalFat*100:0;
+
   document.getElementById('resJobBody').innerHTML=rows.map(j=>{
     const r=j.fat>0?j.lucro/j.fat*100:0;
     return`<tr>
@@ -1389,7 +1394,13 @@ function filtrarResJobs(){
       <td class="num" style="color:${pos(j.lucro)?'#1AAE6F':'#E03B3B'};font-weight:700">${fmtR(j.lucro)}</td>
       <td class="num" style="font-weight:800;color:${pos(r)?'#1AAE6F':'#E03B3B'}">${pos(r)?'▲':'▼'} ${Math.abs(r).toFixed(1)}%</td>
     </tr>`;
-  }).join('');
+  }).join('')+`<tr style="background:rgba(247,198,0,0.06);border-top:2px solid ${Y}">
+    <td style="font-weight:900;color:#8a6200" colspan="3">TOTAL (${rows.length} jobs)</td>
+    <td class="num" style="font-weight:900">${fmtR(totalFat)}</td>
+    <td class="num" style="font-weight:900;color:var(--muted)">${fmtR(totalCusto)}</td>
+    <td class="num" style="font-weight:900;color:${pos(totalLucro)?'#1AAE6F':'#E03B3B'}">${fmtR(totalLucro)}</td>
+    <td class="num" style="font-weight:900;color:${pos(totalRent)?'#1AAE6F':'#E03B3B'}">${pos(totalRent)?'▲':'▼'} ${Math.abs(totalRent).toFixed(1)}%</td>
+  </tr>`;
 }
 
 // ══════════════════════════════════════════════════════════
