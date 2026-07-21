@@ -581,7 +581,7 @@ function removerUser(login){
     </div>
   </div>
   <div class="header-right" id="headerRight">
-    <div class="update-badge">✓ Atualizado 21/07/2026 11:06</div>
+    <div class="update-badge">✓ Atualizado 21/07/2026 11:27</div>
     <div class="pill"><strong>193</strong> notas · Julho</div>
   </div>
 </div>
@@ -976,7 +976,7 @@ function removerUser(login){
     <img src="logo.png" alt="ontrade logo" style="height:28px;width:auto;object-fit:contain;">
     <span>ontrade · Dashboard Financeiro · Confidencial</span>
   </div>
-  <div>Gerado automaticamente em <strong style="color:var(--black)">21/07/2026 11:06</strong></div>
+  <div>Gerado automaticamente em <strong style="color:var(--black)">21/07/2026 11:27</strong></div>
 </div>
 
 <script>
@@ -1256,8 +1256,11 @@ new Chart(document.getElementById('bar25full'),{type:'bar',
 
 // ══ RESULTADO 2026 ══════════════════════════════════════
 let _RES_JOBS=[];
+let _resInit=false;
+const _resCharts={};
 
 function inicializarResultado(res, jobs){
+  if(_resInit) return; _resInit=true;
   _RES_JOBS = jobs;
 
   // KPIs
@@ -1270,8 +1273,13 @@ function inicializarResultado(res, jobs){
   document.getElementById('res-lucro').textContent = fmtR(lucroTotal);
   document.getElementById('res-rent').textContent  = rentMedia.toFixed(1)+'%';
 
+  // Destrói charts anteriores se existirem
+  ['resFatLucro','resRentMes','resLucroCli','resRentCli'].forEach(id=>{
+    if(_resCharts[id]) { _resCharts[id].destroy(); delete _resCharts[id]; }
+  });
+
   // Gráfico: Faturamento vs Lucro por Mês
-  new Chart(document.getElementById('resFatLucro'),{type:'bar',
+  _resCharts['resFatLucro']=new Chart(document.getElementById('resFatLucro'),{type:'bar',
     data:{labels:res.labels,datasets:[
       {label:'Faturado',data:res.fat_mes,backgroundColor:'rgba(247,198,0,0.8)',borderColor:'#F7C600',borderWidth:1.5,borderRadius:5,borderSkipped:false},
       {label:'Lucro',data:res.lucro_mes,backgroundColor:'rgba(26,174,111,0.8)',borderColor:'#1AAE6F',borderWidth:1.5,borderRadius:5,borderSkipped:false}
@@ -1284,7 +1292,7 @@ function inicializarResultado(res, jobs){
   });
 
   // Gráfico: Rentabilidade % por Mês
-  new Chart(document.getElementById('resRentMes'),{type:'line',
+  _resCharts['resRentMes']=new Chart(document.getElementById('resRentMes'),{type:'line',
     data:{labels:res.labels,datasets:[{
       label:'Rentabilidade %',data:res.rent_mes,
       borderColor:'#F7C600',backgroundColor:'rgba(247,198,0,0.15)',
@@ -1298,7 +1306,7 @@ function inicializarResultado(res, jobs){
   });
 
   // Gráfico: Lucro por Cliente
-  new Chart(document.getElementById('resLucroCli'),{type:'bar',
+  _resCharts['resLucroCli']=new Chart(document.getElementById('resLucroCli'),{type:'bar',
     data:{labels:res.clientes,datasets:[{
       label:'Lucro',data:res.lucro_cli,
       backgroundColor:res.lucro_cli.map(v=>v>=0?'rgba(26,174,111,0.8)':'rgba(224,59,59,0.8)'),
@@ -1313,7 +1321,7 @@ function inicializarResultado(res, jobs){
   });
 
   // Gráfico: Rentabilidade por Cliente
-  new Chart(document.getElementById('resRentCli'),{type:'bar',
+  _resCharts['resRentCli']=new Chart(document.getElementById('resRentCli'),{type:'bar',
     data:{labels:res.clientes,datasets:[{
       label:'Rent. %',data:res.rent_cli,
       backgroundColor:res.rent_cli.map(v=>v>=0?'rgba(247,198,0,0.85)':'rgba(224,59,59,0.8)'),
